@@ -1,0 +1,13 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/example-module/^1.0.0/components/context.jsonld",
+  "import": [
+    "css.json",
+    "backend/data-accessor-based-store.json",
+    "backend/data-accessor/inmemory.json"
+  ],
+  "@graph": [
+    {
+      "comment": "A single-pod server that stores its resources in memory."
+    }
+  ]
+}
