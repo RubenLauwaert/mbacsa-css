@@ -20,7 +20,8 @@
       "css:config/ldp/handler/default.json",
       "css:config/ldp/metadata-parser/default.json",
       "css:config/ldp/metadata-writer/default.json",
-      "css:config/ldp/modes/default.json",      
+      "css:config/ldp/modes/default.json",
+      "css:config/storage/backend/file.json",    
       "css:config/storage/key-value/resource-store.json",
       "css:config/storage/middleware/default.json",
       "css:config/util/auxiliary/acl.json",
@@ -33,7 +34,7 @@
     ],
     "@graph": [
       {
-        "comment": "A single-pod server that stores it's resources in a DataAccessorBasedStore, which is not specified."
+        "comment": "A multiple-pod server that can authorize requests by the use of macaroons and the standard WAC."
       }
     ]
   }

@@ -1,11 +1,11 @@
 {
-  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/example-module/^1.0.0/components/context.jsonld",
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
   "import": [
     "css.json"
   ],
   "@graph": [
     {
-      "comment": "A single-pod server that stores its resources in memory."
+      "comment": "A multiple-pod server that can authorize requests by the use of macaroons and the standard WAC."
     }
   ]
 }
