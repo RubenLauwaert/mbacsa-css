@@ -1,1 +1,1 @@
-export * from './InMemoryAccessor'
+export * from './http/MacaroonAuthorizingHttpHandler'

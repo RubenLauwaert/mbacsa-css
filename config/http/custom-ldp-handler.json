@@ -1,0 +1,18 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^5.0.0/components/context.jsonld",
+  "import": [
+    "./macaroon-http-handler.json"
+  ],
+  "@graph": [
+    {
+      "comment": "The main entry point into the main Solid behaviour.",
+      "@id": "urn:solid-server:default:LdpHandler",
+      "@type": "ParsingHttpHandler",
+      "args_requestParser": { "@id": "urn:solid-server:default:RequestParser" },
+      "args_metadataCollector": { "@id": "urn:solid-server:default:OperationMetadataCollector" },
+      "args_errorHandler": { "@id": "urn:solid-server:default:ErrorHandler" },
+      "args_responseWriter": { "@id": "urn:solid-server:default:ResponseWriter" },
+      "args_operationHandler": { "@id": "urn:mbacsa-component:default:MacaroonHttpHandler"}
+    }
+  ]
+}
