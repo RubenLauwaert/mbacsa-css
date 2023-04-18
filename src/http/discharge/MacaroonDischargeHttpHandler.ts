@@ -1,6 +1,7 @@
 import { ResponseDescription,
   getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, ensureTrailingSlash, 
-  OkResponseDescription, guardedStreamFrom, Guarded, RepresentationMetadata } from '@solid/community-server';
+  OkResponseDescription, guardedStreamFrom, Guarded, RepresentationMetadata, Representation } from '@solid/community-server';
+import { DischargeRequest } from './DischargeRequest';
 
 
 export interface MacaroonDischargeHttpHandlerArgs {
@@ -24,18 +25,17 @@ this.dischargeUrl = this.baseUrl + this.endpoint;
 }
 
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
-    const {operation,} = input;  
-  if(operation.target.path === this.dischargeUrl){
-    this.logger.info("This request can be handled by the Macaroon Discharger !");
-    const data:string|any = operation.body.data.read();
-    try {
-      const parsedData = JSON.parse(data);
-      this.logger.info(parsedData.webId);
-    } catch (error) {
-      this.logger.info("Couldn't transform to JSON")
-    }
-
+    const {target, body} = input.operation;  
+  // Check if URL of request matches the endpoint to discharge macaroons
+  if(target.path !== this.dischargeUrl){
+    throw new Error("URL of request doesn't match URL for discharging macaroons!")
   }
+  // Check if data in body of request has the right format
+
+  // Check if given macaroon is correct
+
+  // Check if verified webId (via DPop or Bearer WebID) matches webId in macaroon
+
 }
 
 
@@ -45,4 +45,5 @@ const responseData = guardedStreamFrom("Test");
 const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
 return response;
 }
+
 }
