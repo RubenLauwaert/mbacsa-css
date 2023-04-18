@@ -1,6 +1,7 @@
 {
   "@context": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
   "import": [
+    "./http/custom-ldp-handler.json",
     "css.json"
   ],
   "@graph": [

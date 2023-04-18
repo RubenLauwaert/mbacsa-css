@@ -1,0 +1,11 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
+  "@graph": [
+    {
+      "comment": "",
+      "@id": "urn:mbacsa-component:default:MacaroonMintHttpHandler",
+      "@type": "MacaroonMintHttpHandler",
+      "args_endpointURI": "/.macaroon/mint"
+    }
+  ]
+}

@@ -54,7 +54,7 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
 
   public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
     const { request, operation } = input;
-    this.logger.info('Test for Authorization ... ');
+    this.logger.info('In MacaroonAuthorizingHttpHandler !');
     const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
     this.logger.verbose(`Extracted credentials: ${JSON.stringify(credentials)}`);
 

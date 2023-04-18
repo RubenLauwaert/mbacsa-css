@@ -3,7 +3,7 @@
   "@graph": [
     {
       "comment": "Http handler for specific macaroon http requests",
-      "@id": "urn:mbacsa-component:default:MacaroonHttpHandler",
+      "@id": "urn:mbacsa-component:default:MacaroonAuthorizingHttpHandler",
       "@type": "MacaroonAuthorizingHttpHandler",
       "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
       "args_modesExtractor": { "@id": "urn:solid-server:default:ModesExtractor" },

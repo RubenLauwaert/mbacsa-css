@@ -1,0 +1,14 @@
+{
+  "@context": ["https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
+  "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^5.0.0/components/context.jsonld"],
+
+  "@graph": [
+    {
+      "comment": "",
+      "@id": "urn:mbacsa-component:default:MacaroonDischargeHttpHandler",
+      "@type": "MacaroonDischargeHttpHandler",
+      "args_baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+      "args_endpoint": ".macaroon/discharge"
+    }
+  ]
+}
