@@ -1,6 +1,6 @@
 export interface DischargeRequest {
   
   serializedMacaroon: string,
-  agent?: string
-
+  publicKey: string,
+  agentToDischarge: string
 }
