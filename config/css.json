@@ -9,7 +9,7 @@
       "css:config/http/middleware/websockets.json",
       "css:config/http/server-factory/websockets.json",
       "css:config/http/static/default.json",
-      "css:config/identity/access/public.json",
+      "css:config/identity/access/restricted.json",
       "css:config/identity/email/default.json",
       "css:config/identity/handler/default.json",
       "css:config/identity/ownership/token.json",

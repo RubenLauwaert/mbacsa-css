@@ -15,7 +15,9 @@ public constructor(args: MacaroonMintHttpHandlerArgs) {
 }
 
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
-    this.logger.info("In MacaroonMintHttpHandler !");
+    if(!input.operation.target.path.includes(".macaroon/mint")){
+      throw new Error();
+    }
 }
 
 
