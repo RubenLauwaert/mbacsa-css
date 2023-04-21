@@ -47,8 +47,8 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
 const { request, operation } = input;
 // Generate response that carries the rootMacaroon and corresponding discharge macaroon
 const dischargeRequest = DischargeRequestParser.parseDischargeRequest(input.operation.body);
-new MacaroonDischarger().generateDischargeMacaroon(dischargeRequest);
-const responseData = guardedStreamFrom("Test");
+const serializedDischargeMacaroon = new MacaroonDischarger(this.baseUrl).generateDischargeMacaroon(dischargeRequest);
+const responseData = guardedStreamFrom(serializedDischargeMacaroon);
 const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
 return response;
 }

@@ -14,14 +14,14 @@ declare module 'macaroons.js' {
   declare class MacaroonsBuilder {
     "use strict": any;
     constructor(location:string, secretKey:string, identifier:string);
-    static modify(macaroon: Macaroon): MacaroonsBuilder;
-    static getMacaroon(): Macaroon;
-    static create(location: string, secretKey: string, identifier: string): Macaroon;
-    static create(location: string, secretKey: Buffer, identifier: string): Macaroon;
-    static deserialize(serializedMacaroon: string): Macaroon;
-    static add_first_party_caveat(caveat: string): MacaroonsBuilder;
-    static add_third_party_caveat(location: string, secret: string, identifier: string): MacaroonsBuilder;
-    static prepare_for_request(macaroon: Macaroon): MacaroonsBuilder;
+    modify(macaroon: Macaroon): MacaroonsBuilder;
+    getMacaroon(): Macaroon;
+    create(location: string, secretKey: string, identifier: string): Macaroon;
+    create(location: string, secretKey: Buffer, identifier: string): Macaroon;
+    deserialize(serializedMacaroon: string): Macaroon;
+    add_first_party_caveat(caveat: string): MacaroonsBuilder;
+    add_third_party_caveat(location: string, secret: string, identifier: string): MacaroonsBuilder;
+    prepare_for_request(macaroon: Macaroon): MacaroonsBuilder;
   }
 
   declare class MacaroonsVerifier {
@@ -100,6 +100,16 @@ declare enum CaveatPacketType {
     cl = 5
 }
 
+
+declare class CaveatPacket {
+  type: CaveatPacketType;
+  rawValue: Buffer;
+  private valueAsText;
+  constructor(type: CaveatPacketType, valueAsText: string);
+  constructor(type: CaveatPacketType, valueAsBuffer: Buffer);
+  getRawValue(): Buffer;
+  getValueAsText(): string;
+}
 
 
 }
