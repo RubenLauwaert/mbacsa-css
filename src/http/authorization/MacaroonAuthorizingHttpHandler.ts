@@ -55,7 +55,7 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
   public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
     const { request, operation } = input;
     const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
-    this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
+    this.logger.verbose(`Extracted credentials: ${JSON.stringify(credentials)}`);
 
     const requestedModes = await this.modesExtractor.handleSafe(operation);
     this.logger.verbose(`Retrieved required modes: ${[ ...requestedModes ].join(',')}`);

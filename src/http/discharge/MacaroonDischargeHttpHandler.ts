@@ -33,10 +33,26 @@ this.dischargeUrl = this.baseUrl + this.endpoint;
 
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   const {target, body} = input.operation;  
+
+ 
+
   // Check if URL of request matches the endpoint to discharge macaroons
   if(target.path !== this.dischargeUrl){
     throw new Error("URL of request doesn't match URL for discharging macaroons!")
   }
+
+  // Check if verified web_id is equal to web_id in body
+  const credentialSet = await this.credentialsExtractor.handleSafe(input.request);
+  try {
+  //const {agentToDischarge } = DischargeRequestParser.parseDischargeRequest(input.operation.body);
+  this.logger.info(JSON.stringify(credentialSet));
+  // if(agentToDischarge !== credentialSet.agent!.webId){
+  //   throw new Error("Web id of agent that needs discharge macaroon doesn't match verified identity !");
+  // }  
+  } catch (error) {
+    throw new Error("Body of request doesn't have the right format!");
+  }
+  
   // Check if content-type header matches 'application/json'
   if(input.request.headers['content-type']! !== "application/json"){  
     throw new Error("Content type doesn't match 'application/json' !");
@@ -45,9 +61,6 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   this.logger.warn("[TODO] : Check if body of request has right format !");
   // Check if verified webId (via DPop or Bearer WebID) matches webId in macaroon
   this.logger.warn("[TODO] : Check if verified web_id (via DPoP / Bearer) equals given web_id in request / macaroon");
-
-  const credentialSet = await this.credentialsExtractor.handleSafe(input.request);
-  this.logger.info(JSON.stringify(credentialSet));
 }
 
 
