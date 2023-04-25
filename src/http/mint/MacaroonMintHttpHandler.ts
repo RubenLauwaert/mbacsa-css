@@ -83,7 +83,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
       this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
       const {requestor} = mintRequest;
-      if(requestor !== credentials.agent!.webId){
+      if(credentials.agent?.webId !== undefined && requestor !== credentials.agent!.webId){
         throw new Error("Invalid credentials !");
       }
       // Authorize request
@@ -112,7 +112,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       return response;
 
     } catch (error) {
-      throw new Error("Invalid JSON scheme for macaroon mint request !");
+      throw error;
     }
   }else{
     throw new Error("Invalid request body !");
