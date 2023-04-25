@@ -5,7 +5,12 @@
       "comment": "",
       "@id": "urn:mbacsa-component:default:MacaroonMintHttpHandler",
       "@type": "MacaroonMintHttpHandler",
-      "args_endpointURI": "/.macaroon/mint"
+      "args_endpoint": ".macaroon/mint",
+      "args_baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+      "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
+      "args_modesExtractor": { "@id": "urn:solid-server:default:ModesExtractor" },
+      "args_permissionReader": { "@id": "urn:solid-server:default:PermissionReader" },
+      "args_authorizer": { "@id": "urn:solid-server:default:Authorizer" }
     }
   ]
 }
