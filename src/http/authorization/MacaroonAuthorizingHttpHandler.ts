@@ -1,5 +1,7 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
-      getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler } from '@solid/community-server';
+      getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError } from '@solid/community-server';
+import { MacaroonsExtractor } from './MacaroonsExtractor';
+import { MacaroonsAuthorizer } from './MacaroonsAuthorizer';
 
 
 export interface AuthorizingHttpHandlerArgs {
@@ -52,28 +54,34 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     this.operationHandler = args.operationHandler;
   }
 
+
+  public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
+      const {request} = input;
+      const {headers} = request;
+      const authorizationHeader = headers.authorization!;
+      if(authorizationHeader !== 'macaroon'){
+        throw new Error("Macaroon is not provided !")
+      }
+  }
+
   public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
     const { request, operation } = input;
-    const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
-    this.logger.verbose(`Extracted credentials: ${JSON.stringify(credentials)}`);
+    const { headers } = request;
+    const { target } = operation;
 
-    const requestedModes = await this.modesExtractor.handleSafe(operation);
-    this.logger.verbose(`Retrieved required modes: ${[ ...requestedModes ].join(',')}`);
 
-    const availablePermissions = await this.permissionReader.handleSafe({ credentials, requestedModes });
-    this.logger.verbose(`Available permissions are ${JSON.stringify(availablePermissions)}`);
-    
+    // Extract macaroons
+    const serializedMacaroons = headers['macaroon'] as string;
+    const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
+    // Verify macaroons 
+    const verifier = new MacaroonsAuthorizer(target,macaroons);
+    const isAuthorized = verifier.isAuthorized();
 
-    try {
-      await this.authorizer.handleSafe({ credentials, requestedModes, availablePermissions });
-      operation.availablePermissions = availablePermissions;
-    } catch (error: unknown) {
-      this.logger.verbose(`Authorization failed: ${(error as any).message}`);
-      throw error;
-    }
-
-    this.logger.verbose(`Authorization succeeded, calling source handler`);
-
-    return this.operationHandler.handleSafe(input);
+    if(isAuthorized){
+      this.logger.info("Request is authorized !");
+      return this.operationHandler.handleSafe(input);
+    }else{
+      throw new UnauthorizedHttpError("Could not authorize requests via macaroons !");
+    }    
   }
 }

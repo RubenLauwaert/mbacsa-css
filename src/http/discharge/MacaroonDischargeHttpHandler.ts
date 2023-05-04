@@ -57,10 +57,6 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   if(input.request.headers['content-type']! !== "application/json"){  
     throw new Error("Content type doesn't match 'application/json' !");
   }
-  // Check if data in body of request has the right format
-  this.logger.warn("[TODO] : Check if body of request has right format !");
-  // Check if verified webId (via DPop or Bearer WebID) matches webId in macaroon
-  this.logger.warn("[TODO] : Check if verified web_id (via DPoP / Bearer) equals given web_id in request / macaroon");
 }
 
 
@@ -68,7 +64,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
 const { request, operation } = input;
 // Generate response that carries the rootMacaroon and corresponding discharge macaroon
 const dischargeRequest = DischargeRequestParser.parseDischargeRequest(input.operation.body);
-const serializedDischargeMacaroon = new MacaroonDischarger(this.baseUrl).generateDischargeMacaroon(dischargeRequest);
+const serializedDischargeMacaroon = new MacaroonDischarger(this.dischargeUrl).generateDischargeMacaroon(dischargeRequest);
 const responseData = guardedStreamFrom(serializedDischargeMacaroon);
 const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
 return response;

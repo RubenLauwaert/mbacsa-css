@@ -36,6 +36,8 @@ declare module 'macaroons.js' {
     satisfyGeneral(generalVerifier: (caveat: string) => boolean): MacaroonsVerifier;
   }
 
+  declare function TimestampCaveatVerifier(caveat: string): boolean;
+
 
   declare class MacaroonsDeSerializer {
     static deserialize(serializedMacaroon: string): Macaroon;

@@ -1,8 +1,7 @@
 import { DischargeRequest } from "./DischargeRequest";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
-import {DischargeKeyManager} from "./DischargeKeyManager";
-import NodeRSA from 'node-rsa';
 import { getLoggerFor } from "@solid/community-server";
+import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
 
 
 export interface ThirdPartyCaveat {
@@ -16,10 +15,10 @@ export interface ThirdPartyCaveat {
 export class MacaroonDischarger {
 
   private readonly logger = getLoggerFor(this);
-  private readonly baseUrl:string; 
+  private readonly dischargeUrl:string; 
 
-  public constructor(baseUrl:string){
-    this.baseUrl = baseUrl;
+  public constructor(dischargeUrl:string){
+    this.dischargeUrl = dischargeUrl;
   }
 
   private filterThirdPartyCaveats(macaroon:Macaroon):CaveatPacket[]{
@@ -35,7 +34,7 @@ export class MacaroonDischarger {
         // Check if second next element is of cl type
         if(caveatPackets[caveatPacketIndex + 2].type !== 5){continue;}
         // Check if caveat location equals the baseUrl of this Community server
-        if(caveatPackets[caveatPacketIndex + 2].getValueAsText() !== this.baseUrl){continue;}
+        if(caveatPackets[caveatPacketIndex + 2].getValueAsText() !== this.dischargeUrl){continue;}
         // Caveat packet is a third-party caveat for this location --> add
         filteredCaveatPackets.push(caveatPacket);
       }
@@ -45,9 +44,11 @@ export class MacaroonDischarger {
 
   private getDecryptedCaveatToDischarge(filteredCaveatPackets : CaveatPacket[], agentToDischarge:string):ThirdPartyCaveat{
     
+    const macaroonKeyManager = new MacaroonKeyManager();
+
     for(const caveatPacket of filteredCaveatPackets){
       try{
-        const decryptedCaveatId = DischargeKeyManager.decrypt(caveatPacket.getValueAsText());
+        const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(caveatPacket.getValueAsText());
         // Example of decrypted caveatId : "CAVEATKEY::predicate"
         if(decryptedCaveatId.includes("::")){
           const [caveatKey,predicate] = decryptedCaveatId.split("::");
@@ -65,16 +66,15 @@ export class MacaroonDischarger {
 
 
   public generateDischargeMacaroon(dischargeRequest:DischargeRequest): string{
-    const {serializedMacaroon, publicKey, agentToDischarge} = dischargeRequest;
+    const {serializedMacaroon, agentToDischarge} = dischargeRequest;
     // Deserialize macaroon
     const deserializedMacaroon = MacaroonsDeSerializer.deserialize(serializedMacaroon);
-    //this.logger.info(JSON.stringify(deserializedMacaroon.caveatPackets));
     // Filter Third-Party caveatPackets that have the same caveat location as this server
     const filteredCaveatPackets = this.filterThirdPartyCaveats(deserializedMacaroon);
     // Decrypt third-party cId with corresponding private key of generated keypair
     const {caveatKey,predicate, encryptedCaveat} = this.getDecryptedCaveatToDischarge(filteredCaveatPackets,agentToDischarge);
     // Create new discharge macaroon
-    return new MacaroonsBuilder(this.baseUrl,caveatKey,encryptedCaveat)
+    return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
             .getMacaroon().serialize();
 
   }

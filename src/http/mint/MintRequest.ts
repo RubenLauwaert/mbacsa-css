@@ -1,4 +1,3 @@
-
 export interface MintRequest {
   resourceURI: string,
   requestor: string,

@@ -5,8 +5,8 @@ import { validate } from "jsonschema";
 const mintRequestBodySchema = {
   type: "object",
   properties: {
-    resourceURI: { type: "string" },
-    requestor: { type: "string" },
+    resourceURI: { type: "string", format: "uri" },
+    requestor: { type: "string", format: "uri" },
     // TODO: Add JWK scheme 
     dischargeKey: { type: "object" }
   },

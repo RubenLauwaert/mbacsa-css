@@ -83,13 +83,13 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
       this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
       const {requestor} = mintRequest;
-      if(credentials.agent?.webId !== undefined && requestor !== credentials.agent!.webId){
+      if(credentials.agent?.webId !== undefined && requestor.toString() !== credentials.agent!.webId){
         throw new Error("Invalid credentials !");
       }
       // Authorize request
       const {resourceURI} = mintRequest;
       const requestedModes = new IdentifierSetMultiMap<AccessMode>()
-        .add({path: resourceURI},AccessMode.read);
+        .add({path: resourceURI.toString()},AccessMode.read);
 
       const availablePermissions = await this.permissionReader.handleSafe({ credentials, requestedModes });
       this.logger.info(`Available permissions are ${JSON.stringify(availablePermissions)}`);
