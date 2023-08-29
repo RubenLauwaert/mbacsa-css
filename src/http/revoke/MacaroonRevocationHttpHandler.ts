@@ -45,6 +45,20 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const { request, operation } = input;
   const { headers } = request;
   const { target } = operation;
+
+
+  // Authenticate revoker
+
+  // Verify if macaroon to revoke is valid 
+    // 1. Check if it is structurally ok --> discharge macaroons for tp-caveats + check sig (via library)
+
+  // Check if authenticated webId equals webId of discharge macaroon last in chain
+
+  // Add <RM_ID,DM_ID> to RevocationStore
+
+
+
+
   throw new NotImplementedHttpError("Revocation is not implemented yet !");
 }
 }
