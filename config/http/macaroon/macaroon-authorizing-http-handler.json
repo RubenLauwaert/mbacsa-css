@@ -2,7 +2,7 @@
   "@context": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
   "@graph": [
     {
-      "comment": "Http handler for specific macaroon http requests",
+      "comment": "Http handler for authorizing requests via mbacsa (macaroons)",
       "@id": "urn:mbacsa-component:default:MacaroonAuthorizingHttpHandler",
       "@type": "MacaroonAuthorizingHttpHandler",
       "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },

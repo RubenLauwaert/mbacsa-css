@@ -23,8 +23,6 @@ export class MacaroonMinter {
     const secretKey = new MacaroonKeyManager().getSecretRootKey();
 
     
-    // TODO: identifier and secret key of root macaroon should be saved in MacaroonStore
-
     // Generate time constrained root macaroon
     const oneHourLater = new Date();
     oneHourLater.setHours(oneHourLater.getHours() + 1);

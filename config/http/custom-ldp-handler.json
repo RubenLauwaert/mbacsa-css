@@ -8,9 +8,10 @@
     "css:config/ldp/handler/components/preferences.json",
     "css:config/ldp/handler/components/request-parser.json",
     "css:config/ldp/handler/components/response-writer.json",
-    "./macaroon/macaroon-http-handler.json",
+    "./macaroon/macaroon-authorizing-http-handler.json",
     "./macaroon/macaroon-discharge-http-handler.json",
-    "./macaroon/macaroon-mint-http-handler.json"
+    "./macaroon/macaroon-mint-http-handler.json",
+    "./macaroon/macaroon-revoke-http-handler.json"
   ],
   "@graph": [
     {
@@ -26,6 +27,7 @@
         "handlers": [
           {"@id": "urn:mbacsa-component:default:MacaroonDischargeHttpHandler"},
           {"@id": "urn:mbacsa-component:default:MacaroonMintHttpHandler"},
+          {"@id": "urn:mbacsa-component:default:MacaroonRevocationHttpHandler"},
           {"@id": "urn:mbacsa-component:default:MacaroonAuthorizingHttpHandler"},
           {"@type": "AuthorizingHttpHandler",
           "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },

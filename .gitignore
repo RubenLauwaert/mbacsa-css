@@ -3,3 +3,4 @@ dist/
 .acl
 .meta
 .internal/
+package-lock.json

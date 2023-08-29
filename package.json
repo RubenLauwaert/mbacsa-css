@@ -17,6 +17,7 @@
     "jsonschema": "^1.4.1",
     "macaroons.js": "^0.3.9",
     "node-rsa": "^1.1.1",
+    "nvm": "^0.0.4",
     "pem-jwk": "^2.0.0",
     "uuid": "^9.0.0"
   },
