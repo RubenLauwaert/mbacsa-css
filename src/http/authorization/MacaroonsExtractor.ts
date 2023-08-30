@@ -19,4 +19,21 @@ export class MacaroonsExtractor {
     }
   }
 
+  public static extractDelegatedAgentFromMacaroon(macaroon:Macaroon):string {
+    const caveats = macaroon.caveatPackets;
+    let delegatedAgent = ""
+    for (let i = 0; i < caveats.length; i++) {
+      const caveat = caveats[i];
+      const caveatMessage = caveat.getValueAsText();
+    
+      if (caveatMessage.includes('agent = ')) {
+        delegatedAgent = caveatMessage.split('=')[1].trim();
+        break; // Exit the loop when the condition is met
+      }
+    }
+    return delegatedAgent;
+  }
+
+
+
 }

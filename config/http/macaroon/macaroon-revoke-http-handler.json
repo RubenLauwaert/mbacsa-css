@@ -1,14 +1,16 @@
 {
   "@context": ["https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^5.0.0/components/context.jsonld"],
-    "@graph": [
-      {
-        "comment": "Http handler for revocations via mbacsa (macaroons)",
-        "@id": "urn:mbacsa-component:default:MacaroonRevocationHttpHandler",
-        "@type": "MacaroonRevocationHttpHandler",
-        "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
-        "args_baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
-        "args_endpoint": ".macaroon/revoke"
-      }
-    ]
+  "import": ["../../storage/revocation-store.json"],
+  "@graph": [
+    {
+      "comment": "Http handler for revocations via mbacsa (macaroons)",
+      "@id": "urn:mbacsa-component:default:MacaroonRevocationHttpHandler",
+      "@type": "MacaroonRevocationHttpHandler",
+      "args_credentialsExtractor": { "@id": "urn:solid-server:default:CredentialsExtractor" },
+      "args_baseUrl": { "@id": "urn:solid-server:default:variable:baseUrl" },
+      "args_endpoint": ".macaroon/revoke",
+      "args_revocationStore": { "@id": "urn:mbacsa-component:default:RevocationStore"}
+    }
+  ]
   }

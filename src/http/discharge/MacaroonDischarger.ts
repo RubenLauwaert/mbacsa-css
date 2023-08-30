@@ -75,6 +75,7 @@ export class MacaroonDischarger {
     const {caveatKey,predicate, encryptedCaveat} = this.getDecryptedCaveatToDischarge(filteredCaveatPackets,agentToDischarge);
     // Create new discharge macaroon
     return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
+            .add_first_party_caveat(`agent = ${agentToDischarge}`)
             .getMacaroon().serialize();
 
   }

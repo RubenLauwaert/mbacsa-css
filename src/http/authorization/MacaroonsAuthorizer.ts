@@ -49,7 +49,11 @@ export class MacaroonsAuthorizer {
     });
     
     // Third-Party caveats verifier
-    this.dischargeMacaroons.forEach((dischargeMacaroon) =>{ 
+    this.dischargeMacaroons.forEach((dischargeMacaroon) =>{
+      macaroonVerifier.satisfyGeneral((caveat) => {
+        if(!caveat.includes("agent = ")){return false;}
+        else{return true;}
+      });
       macaroonVerifier.satisfy3rdParty(dischargeMacaroon);
     })
     

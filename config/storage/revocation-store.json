@@ -1,0 +1,12 @@
+{
+  "@context": ["https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
+  "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^5.0.0/components/context.jsonld"],
+  "@graph": [
+    {
+      "comment": "Revocation storage",
+      "@id": "urn:mbacsa-component:default:RevocationStore",
+      "@type": "JsonFileStorage",
+      "filePath": ".mbacsa/revocation",
+      "locker": { "@id": "urn:solid-server:default:ResourceLocker"}
+    }]
+}

@@ -1,7 +1,9 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
-    getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash } from '@solid/community-server';
+    getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash, JsonFileStorage } from '@solid/community-server';
 import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
-
+import { RevocationRequestParser } from './RevocationRequestParser';
+import { MacaroonsExtractor } from '../authorization/MacaroonsExtractor';
+import { MacaroonsAuthorizer } from '../authorization/MacaroonsAuthorizer';
 
 export interface MacaroonRevocationHttpHandlerArgs {
   /**
@@ -9,7 +11,8 @@ export interface MacaroonRevocationHttpHandlerArgs {
    */
   credentialsExtractor: CredentialsExtractor,
   baseUrl : string,
-  endpoint : string 
+  endpoint : string,
+  revocationStore: JsonFileStorage
 }
 
 
@@ -22,6 +25,7 @@ private readonly credentialsExtractor: CredentialsExtractor;
 private readonly baseUrl:string;
 private readonly endpoint:string;
 private readonly revokeUrl:string;
+private readonly revocationStore:JsonFileStorage;
 
 public constructor(args: MacaroonRevocationHttpHandlerArgs) {
   super();
@@ -29,16 +33,18 @@ public constructor(args: MacaroonRevocationHttpHandlerArgs) {
   this.baseUrl = ensureTrailingSlash(args.baseUrl);
   this.endpoint = args.endpoint;
   this.revokeUrl = this.baseUrl + this.endpoint;
+  this.revocationStore = args.revocationStore;
 }
 
 
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   const {target, body} = input.operation;  
 
-  // Check if URL of request matches the endpoint to discharge macaroons
+  // Check if URL of request matches the endpoint to revoke macaroons
   if(target.path !== this.revokeUrl){
     throw new Error("URL of request doesn't match URL for revoking macaroons!")
   }
+
 }
 
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
@@ -47,15 +53,30 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const { target } = operation;
 
 
-  // Authenticate revoker
+  // 1. Authenticate requestor
 
-  // Verify if macaroon to revoke is valid 
-    // 1. Check if it is structurally ok --> discharge macaroons for tp-caveats + check sig (via library)
 
-  // Check if authenticated webId equals webId of discharge macaroon last in chain
+  // 2. Parse revocation request
+  const {serializedMacaroons, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
 
-  // Add <RM_ID,DM_ID> to RevocationStore
+  // 3. Extract macaroon + discharge macaroons to revoke 
+  const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
+  const [rootMacaroon,...dischargeMacaroons] = macaroons;
+  // 4. Verify if macaroon to revoke is valid 
+    // 4.1. Check if it is structurally ok --> discharge macaroons for tp-caveats + check sig (via library)
+    const resourceURI = {path: rootMacaroon.location};
+    const macaroonsVerifier = new MacaroonsAuthorizer(resourceURI,macaroons);
+    const isAuthorized = macaroonsVerifier.isAuthorized();
+    if(!isAuthorized){throw new Error("Unauthorized to make revocation request: presented macaroon is not valid !")};
+    // 4.2. Check if webID of revoker equals webID of discharge macaroon last in the chain
+    const lastDischargeMacaroonInChain = dischargeMacaroons[dischargeMacaroons.length - 1];
+    const agentLastInChain = MacaroonsExtractor.extractDelegatedAgentFromMacaroon(lastDischargeMacaroonInChain);
+    if(agentLastInChain != revoker){throw new Error("Unauthorized to make revocation request: revoker is not last in the delegation chain !")};
 
+  // 5. Check if revoker WebID is equal to the authenticated agent
+
+  // 6. Add <RM_ID,DM_ID> to RevocationStore
+  this.revocationStore.set(rootMacaroon.identifier,lastDischargeMacaroonInChain.identifier);
 
 
 
