@@ -1,5 +1,5 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
-    getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash, JsonFileStorage } from '@solid/community-server';
+    getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash, JsonFileStorage , ReadWriteLocker, EqualReadWriteLocker, FileSystemResourceLocker, VoidLocker } from '@solid/community-server';
 import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
 import { RevocationRequestParser } from './RevocationRequestParser';
 import { MacaroonsExtractor } from '../authorization/MacaroonsExtractor';
@@ -57,7 +57,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
 
 
   // 2. Parse revocation request
-  const {serializedMacaroons, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
+  const {serializedMacaroons, resourceOwner, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
 
   // 3. Extract macaroon + discharge macaroons to revoke 
   const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
@@ -76,9 +76,12 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   // 5. Check if revoker WebID is equal to the authenticated agent
 
   // 6. Add <RM_ID,DM_ID> to RevocationStore
-  this.revocationStore.set(rootMacaroon.identifier,lastDischargeMacaroonInChain.identifier);
-
-
+  // this.revocationStore.set(rootMacaroon.identifier,lastDischargeMacaroonInChain.identifier);
+  const revocationStorePath = resourceOwner.replace("/profile/card#me","") + "/mbacsa/revocation-store";
+  
+  const locker = new VoidLocker();
+  const store = new JsonFileStorage(revocationStorePath,locker);
+  store.set(rootMacaroon.identifier, revokee);
 
   throw new NotImplementedHttpError("Revocation is not implemented yet !");
 }

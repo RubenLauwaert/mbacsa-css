@@ -6,6 +6,7 @@ const revocationRequestBodySchema = {
   type: "object",
   properties: {
     serializedMacaroons: { type: "array" },
+    resourceOwner: {type: "string"},
     revoker: {type: "string"},
     revokee: {type: "string"}
   },
@@ -23,6 +24,7 @@ export class RevocationRequestParser {
       if(validationResult.valid){
         return {
           serializedMacaroons: jsonRequest.serializedMacaroons,
+          resourceOwner: jsonRequest.resourceOwner,
           revoker: jsonRequest.revoker,
           revokee: jsonRequest.revokee
         }
