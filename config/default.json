@@ -2,10 +2,11 @@
   "@context": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
   "import": [
     "./http/custom-ldp-handler.json",
-    "css.json"
+    "css.json",
+    "./pod-generation/mbacsa-templated.json"
   ],
   "@graph": [
-    {
+    { 
       "comment": "A multiple-pod server that can authorize requests by the use of macaroons and the standard WAC."
     }
   ]

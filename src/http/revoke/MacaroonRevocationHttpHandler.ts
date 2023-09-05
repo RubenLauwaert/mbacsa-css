@@ -80,7 +80,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const revocationStorePath = resourceOwner.replace("/profile/card#me","") + "/mbacsa/revocation-store";
   
   const locker = new VoidLocker();
-  const store = new JsonFileStorage(revocationStorePath,locker);
+  const store = new JsonFileStorage("Bob/mbacsa/revocation-store",locker);
   store.set(rootMacaroon.identifier, revokee);
 
   throw new NotImplementedHttpError("Revocation is not implemented yet !");
