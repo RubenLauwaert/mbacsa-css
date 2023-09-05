@@ -13,7 +13,6 @@
       "css:config/identity/email/default.json",
       "css:config/identity/handler/default.json",
       "css:config/identity/ownership/token.json",
-      "css:config/identity/pod/static.json",
       "css:config/identity/registration/enabled.json",
       "css:config/ldp/authentication/dpop-bearer.json",
       "css:config/ldp/authorization/webacl.json",

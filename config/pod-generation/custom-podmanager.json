@@ -1,0 +1,16 @@
+{
+  "@context": ["https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component/^1.0.0/components/context.jsonld",
+  "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^5.0.0/components/context.jsonld"],
+  "import": [
+    "./mbacsa-templated.json"
+  ],
+  "@graph": [
+    {
+      "comment": "Stores all new resources for a pod in the default resource store under the generated identifier.",
+      "@id": "urn:solid-server:default:PodManager",
+      "@type": "GeneratedPodManager",
+      "store": { "@id": "urn:solid-server:default:ResourceStore" },
+      "resourcesGenerator": { "@id": "urn:mbacsa-component:default:CustomResourceGenerator" }
+    }
+  ]
+}

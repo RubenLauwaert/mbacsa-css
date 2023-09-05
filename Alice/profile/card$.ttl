@@ -10,3 +10,4 @@
     
     solid:oidcIssuer <http://localhost:3000/>;
     a foaf:Person.
+
