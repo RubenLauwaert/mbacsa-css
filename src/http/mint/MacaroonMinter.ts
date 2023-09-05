@@ -5,6 +5,7 @@ import NodeRSA from "node-rsa";
 import { v4 as uuidv4 } from 'uuid';
 import {jwk2pem} from 'pem-jwk';
 import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
+import { extractPathToPod, extractWebID } from "../../util/Util";
 
 
 export class MacaroonMinter {
@@ -20,14 +21,22 @@ export class MacaroonMinter {
 
     const location = resourceURI;
     const identifier = uuidv4();
+    const issuer = extractWebID(resourceURI);
     const secretKey = new MacaroonKeyManager().getSecretRootKey();
 
+    // Extract issuer WebID from resourceURI;
     
-    // Generate time constrained root macaroon
-    const oneHourLater = new Date();
-    oneHourLater.setHours(oneHourLater.getHours() + 1);
+    this.logger.info(extractPathToPod(resourceURI));
+
+    // Add issuer to root macaroon as first-party caveat
     const rm = new MacaroonsBuilder(location,secretKey,identifier)
-      .add_first_party_caveat(`time < ${oneHourLater.getTime()}`);
+      .add_first_party_caveat(`issuer = ${issuer}`)
+
+    // Add time constraints (Macaroon is valid for 24h)
+    const oneHourLater = new Date();
+    oneHourLater.setHours(oneHourLater.getHours() + 24);
+    rm.add_first_party_caveat(`time < ${oneHourLater.getTime()}`);
+
         
     // - Add third-party caveat, used for discharging the requestor (proof of identity)
     const dischargeLocation = ensureTrailingSlash(new URL(requestor).origin) + ".macaroon/discharge";
