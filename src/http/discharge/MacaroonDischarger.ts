@@ -2,6 +2,7 @@ import { DischargeRequest } from "./DischargeRequest";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
 import { getLoggerFor } from "@solid/community-server";
 import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
+import { extractPathToPod } from "../../util/Util";
 
 
 export interface ThirdPartyCaveat {
@@ -48,7 +49,8 @@ export class MacaroonDischarger {
 
     for(const caveatPacket of filteredCaveatPackets){
       try{
-        const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(caveatPacket.getValueAsText());
+        const pathToPodOfAgentToDischarge  = extractPathToPod(agentToDischarge);
+        const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(pathToPodOfAgentToDischarge, caveatPacket.getValueAsText());
         // Example of decrypted caveatId : "CAVEATKEY::predicate"
         if(decryptedCaveatId.includes("::")){
           const [caveatKey,predicate] = decryptedCaveatId.split("::");

@@ -1,7 +1,7 @@
 import { ResourceIdentifier, getLoggerFor } from "@solid/community-server";
 import { Macaroon, MacaroonsVerifier, TimestampCaveatVerifier } from "macaroons.js";
 import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
-import { extractWebID } from "../../util/Util";
+import { extractPathToPod, extractWebID } from "../../util/Util";
 
 export class MacaroonsAuthorizer {
 
@@ -14,7 +14,6 @@ export class MacaroonsAuthorizer {
   public constructor(target:ResourceIdentifier, macaroons: Macaroon[]){
     this.target = target;
     this.issuer = extractWebID(target.path);
-    this.logger.info(this.issuer);
     // Retrieve root/discharge macaroons : Root macaroons should always be the first macaroon in the list
     const [rootMacaroon,...dischargeMacaroons] = macaroons;
     this.rootMacaroon = rootMacaroon;
@@ -73,7 +72,8 @@ export class MacaroonsAuthorizer {
     
 
     // Perform validation of macaroon
-    const rootSecretKey = new MacaroonKeyManager().getSecretRootKey();
+    const rootOfIssuer =  extractPathToPod(this.target.path);
+    const rootSecretKey = new MacaroonKeyManager().getSecretRootKey(rootOfIssuer);
     const isVerified = macaroonVerifier.isValid(rootSecretKey);
     return isVerified;
   

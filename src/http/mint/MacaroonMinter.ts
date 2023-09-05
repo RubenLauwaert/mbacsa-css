@@ -18,16 +18,14 @@ export class MacaroonMinter {
 
   public async mintMacaroon(mintRequest : MintRequest):Promise<string>{
     const {resourceURI, requestor, dischargeKey} = mintRequest;
-
+    this.logger.info("hallo")
     const location = resourceURI;
     const identifier = uuidv4();
     const issuer = extractWebID(resourceURI);
-    const secretKey = new MacaroonKeyManager().getSecretRootKey();
-
-    // Extract issuer WebID from resourceURI;
-    
-    this.logger.info(extractPathToPod(resourceURI));
-
+    const rootOfIssuer = extractPathToPod(resourceURI);
+    this.logger.info(rootOfIssuer)
+    const secretKey = new MacaroonKeyManager().getSecretRootKey(rootOfIssuer);
+    this.logger.info(secretKey);
     // Add issuer to root macaroon as first-party caveat
     const rm = new MacaroonsBuilder(location,secretKey,identifier)
       .add_first_party_caveat(`issuer = ${issuer}`)

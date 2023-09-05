@@ -22,13 +22,13 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.2.0",
-    "@typescript-eslint/parser": "^6.6.0",
-    "@typescript-eslint/typescript-estree": "^6.6.0",
     "@tsconfig/node14": "^1.0.1",
     "@types/node-rsa": "^1.1.1",
     "@types/pem-jwk": "^2.0.0",
-    "componentsjs-generator": "^3.1.2"
+    "@typescript-eslint/parser": "^6.6.0",
+    "@typescript-eslint/typescript-estree": "^6.6.0",
+    "componentsjs-generator": "^3.1.2",
+    "typescript": "^5.2.2"
   },
   "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/mbacsa-component",
   "lsd:components": "dist/components/components.jsonld",

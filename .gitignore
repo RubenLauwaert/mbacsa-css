@@ -4,3 +4,6 @@ dist/
 .meta
 .internal/
 package-lock.json
+Alice/
+Bob/
+Jane/

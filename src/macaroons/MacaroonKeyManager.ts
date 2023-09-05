@@ -1,39 +1,46 @@
 import * as fs from 'fs';
 import NodeRSA from 'node-rsa';
 import { getLoggerFor } from '@solid/community-server';
+import { extractPathToPod, extractPodName } from '../util/Util';
 
 export interface MacaroonKeyManagerI {
   // Discharge
-  getPublicDischargeKey: () => string,
-  encryptCaveatIdentifier: (cId: string) => string,
-  decryptCaveatIdentifier: (encrypted_cId:string) => string,
+  getPublicDischargeKey: (pathToRootOfPod:string) => string,
+  encryptCaveatIdentifier: (pathToRootOfPod:string, cId: string) => string,
+  decryptCaveatIdentifier: (pathToRootOfPod:string, encrypted_cId:string) => string,
   // Minting & Verification
-  getSecretRootKey: () => string
+  getSecretRootKey: (pathToRootOfPod:string) => string
 
 }
 
 
-const REL_DISCHARGE_KEY_FOLDER_PATH = '/config/keys/macaroon/discharge/';
-const REL_ROOT_KEY_FOLDER_PATH = '/config/keys/macaroon/root/';
+const REL_DISCHARGE_KEY_FOLDER_PATH = '/keys/discharge/';
+const REL_MINT_KEY_FOLDER_PATH = '/keys/mint/';
 
 
 export class MacaroonKeyManager implements MacaroonKeyManagerI {
   
-  
+  private readonly logger = getLoggerFor(this);
+
   public constructor(){}
 
 
-  public getPublicDischargeKey():string{
-    return fs.readFileSync(process.cwd() + REL_DISCHARGE_KEY_FOLDER_PATH + 'public.key').toString();
+  public getPublicDischargeKey(pathToRootOfPod:string):string{
+    const podName = extractPodName(pathToRootOfPod);
+    const pathToPublicDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'public.key'
+    return fs.readFileSync(pathToPublicDischargeKey).toString();
   }
 
-  private getPrivateDischargeKey():string{
-    return fs.readFileSync(process.cwd() + REL_DISCHARGE_KEY_FOLDER_PATH + 'private.key').toString();
+  private getPrivateDischargeKey(pathToRootOfPod:string):string{
+    const podName = extractPodName(pathToRootOfPod);
+    const pathToPrivateDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'private.key'
+    this.logger.info(pathToPrivateDischargeKey);
+    return fs.readFileSync(pathToPrivateDischargeKey).toString();
   }
 
-  public encryptCaveatIdentifier(cId: string):string{
+  public encryptCaveatIdentifier(pathToRootOfPod:string, cId: string):string{
     try {
-      const publicKey = this.getPublicDischargeKey();
+      const publicKey = this.getPublicDischargeKey(pathToRootOfPod);
       const rsa = new NodeRSA(publicKey);
       const encrypted_cId = rsa.encrypt(cId).toString();
       return encrypted_cId;
@@ -42,9 +49,9 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   };
 
-  public decryptCaveatIdentifier(encrypted_cId:string):string{
+  public decryptCaveatIdentifier(pathToRootOfPod:string, encrypted_cId:string):string{
     try {
-      const privateKey = this.getPrivateDischargeKey();
+      const privateKey = this.getPrivateDischargeKey(pathToRootOfPod);
       const rsa = new NodeRSA(privateKey);
       const decrypted_cId = rsa.decrypt(encrypted_cId).toString();
       return decrypted_cId
@@ -53,10 +60,12 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   }
 
-  public getSecretRootKey():string{
+  public getSecretRootKey(pathToRootOfPod:string):string{
     try {
-      return fs.readFileSync(process.cwd() + REL_ROOT_KEY_FOLDER_PATH + 'root.txt').toString();  
+      const podName = extractPodName(pathToRootOfPod);
+      return fs.readFileSync(process.cwd() + '/' + podName + REL_MINT_KEY_FOLDER_PATH + 'secret.key').toString();  
     } catch (error) {
+      this.logger.info("Error retrieving secret macaroon key !")
       throw new Error("Retrieving secret root key failed : " + error);
     }
     
