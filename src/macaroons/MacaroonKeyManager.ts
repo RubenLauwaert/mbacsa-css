@@ -3,6 +3,9 @@ import NodeRSA from 'node-rsa';
 import { getLoggerFor } from '@solid/community-server';
 import { extractPathToPod, extractPodName } from '../util/Util';
 
+const REL_DISCHARGE_KEY_FOLDER_PATH = '/keys/discharge/';
+const REL_MINT_KEY_FOLDER_PATH = '/keys/mint/';
+
 export interface MacaroonKeyManagerI {
   // Discharge
   getPublicDischargeKey: (pathToRootOfPod:string) => string,
@@ -12,10 +15,6 @@ export interface MacaroonKeyManagerI {
   getSecretRootKey: (pathToRootOfPod:string) => string
 
 }
-
-
-const REL_DISCHARGE_KEY_FOLDER_PATH = '/keys/discharge/';
-const REL_MINT_KEY_FOLDER_PATH = '/keys/mint/';
 
 
 export class MacaroonKeyManager implements MacaroonKeyManagerI {
@@ -34,7 +33,6 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
   private getPrivateDischargeKey(pathToRootOfPod:string):string{
     const podName = extractPodName(pathToRootOfPod);
     const pathToPrivateDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'private.key'
-    this.logger.info(pathToPrivateDischargeKey);
     return fs.readFileSync(pathToPrivateDischargeKey).toString();
   }
 
@@ -65,7 +63,7 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
       const podName = extractPodName(pathToRootOfPod);
       return fs.readFileSync(process.cwd() + '/' + podName + REL_MINT_KEY_FOLDER_PATH + 'secret.key').toString();  
     } catch (error) {
-      this.logger.info("Error retrieving secret macaroon key !")
+      this.logger.info("Error retrieving secret macaroon key : " + error)
       throw new Error("Retrieving secret root key failed : " + error);
     }
     

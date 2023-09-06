@@ -4,3 +4,7 @@ export interface DischargeRequest {
   publicKey: string,
   agentToDischarge: string
 }
+
+export interface PublicKeyDischargeRequest {
+  agentToDischarge: string
+}

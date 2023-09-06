@@ -1,5 +1,5 @@
 import { Representation } from "@solid/community-server";
-import { DischargeRequest } from "./DischargeRequest";
+import { DischargeRequest, PublicKeyDischargeRequest } from "./DischargeRequest";
 import {validate} from 'jsonschema';
 
 
@@ -12,6 +12,14 @@ const dischargeRequestBodySchema = {
   },
   required: ["serializedMacaroon", "publicKey", "agentToDischarge"]
 };
+
+const publicDischargeKeyRequestSchema = {
+  type: "object",
+  properties: {
+    agentToDischarge: {type: "string"},
+  },
+  required: ["agentToDischarge"]
+}
 
 
 
@@ -33,6 +41,7 @@ export class DischargeRequestParser {
     }
   }
 
+
   public static isValidDischargeRequest(jsonRequestString:string):boolean{
     try {
       const jsonRequest = JSON.parse(jsonRequestString);
@@ -46,5 +55,28 @@ export class DischargeRequestParser {
     return body.data.readable;
   }
 
+  public static isValidPublicKeyRequest(body:Representation):boolean{
+    if(this.isRequestBodyReadable(body)){
+      const jsonRequestString = body.data.read();
+      try {
+        const jsonRequest = JSON.parse(jsonRequestString);
+        return validate(jsonRequest,publicDischargeKeyRequestSchema).valid;
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  public static parsePublicKeyRequest(body: Representation):PublicKeyDischargeRequest{
+    if(this.isValidPublicKeyRequest(body)){
+      const jsonRequestString = body.data.read();
+      return JSON.parse(jsonRequestString);
+  
+    }else{
+      throw new Error("Body of request does not have the right schema to retrieve public discharge key!")
+    }
+
+  }
 
 }
