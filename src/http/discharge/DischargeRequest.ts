@@ -6,5 +6,5 @@ export interface DischargeRequest {
 }
 
 export interface PublicKeyDischargeRequest {
-  agentToDischarge: string
+  subjectToRetrieveKeyFrom: string
 }

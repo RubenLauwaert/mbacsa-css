@@ -73,7 +73,7 @@ export class MacaroonsAuthorizer {
 
     // Perform validation of macaroon
     const rootOfIssuer =  extractPathToPod(this.target.path);
-    const rootSecretKey = new MacaroonKeyManager().getSecretRootKey(rootOfIssuer);
+    const rootSecretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
     const isVerified = macaroonVerifier.isValid(rootSecretKey);
     return isVerified;
   

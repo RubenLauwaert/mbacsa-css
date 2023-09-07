@@ -22,7 +22,7 @@ export class MacaroonMinter {
     const identifier = uuidv4();
     const issuer = extractWebID(resourceURI);
     const rootOfIssuer = extractPathToPod(resourceURI);
-    const secretKey = new MacaroonKeyManager().getSecretRootKey(rootOfIssuer);
+    const secretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
     // Add issuer to root macaroon as first-party caveat
     const rm = new MacaroonsBuilder(location,secretKey,identifier)
       .add_first_party_caveat(`issuer = ${issuer}`)

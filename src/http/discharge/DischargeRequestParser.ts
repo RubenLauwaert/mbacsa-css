@@ -1,4 +1,4 @@
-import { Representation } from "@solid/community-server";
+import { Representation, getLoggerFor } from "@solid/community-server";
 import { DischargeRequest, PublicKeyDischargeRequest } from "./DischargeRequest";
 import {validate} from 'jsonschema';
 
@@ -16,14 +16,18 @@ const dischargeRequestBodySchema = {
 const publicDischargeKeyRequestSchema = {
   type: "object",
   properties: {
-    agentToDischarge: {type: "string"},
+    subjectToRetrieveKeyFrom: {type: "string"},
   },
-  required: ["agentToDischarge"]
+  required: ["subjectToRetrieveKeyFrom"]
 }
 
 
 
 export class DischargeRequestParser {
+
+  public constructor(){};
+  private readonly logger = getLoggerFor(this)
+
 
   public static parseDischargeRequest(body: Representation):DischargeRequest {
     if(this.isRequestBodyReadable(body)){
@@ -68,15 +72,17 @@ export class DischargeRequestParser {
     return false;
   }
 
-  public static parsePublicKeyRequest(body: Representation):PublicKeyDischargeRequest{
-    if(this.isValidPublicKeyRequest(body)){
-      const jsonRequestString = body.data.read();
-      return JSON.parse(jsonRequestString);
-  
-    }else{
-      throw new Error("Body of request does not have the right schema to retrieve public discharge key!")
+  public static parsePublicKeyRequest(requestBody:any):PublicKeyDischargeRequest{
+    try {
+      const jsonRequest = JSON.parse(requestBody);
+      if(validate(jsonRequest,publicDischargeKeyRequestSchema).valid){
+        return jsonRequest;
+      }else{
+        throw new Error("Body of request does not have the right JSON format !")
+      }
+    } catch (error) {
+      throw new Error("Body of request could not be parsed to JSON format !")
     }
-
   }
 
 }

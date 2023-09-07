@@ -45,12 +45,12 @@ export class MacaroonDischarger {
 
   private getDecryptedCaveatToDischarge(filteredCaveatPackets : CaveatPacket[], agentToDischarge:string):ThirdPartyCaveat{
     
-    const macaroonKeyManager = new MacaroonKeyManager();
+    const pathToPodOfAgentToDischarge  = extractPathToPod(agentToDischarge);
+    const macaroonKeyManager = new MacaroonKeyManager(pathToPodOfAgentToDischarge);
 
     for(const caveatPacket of filteredCaveatPackets){
       try{
-        const pathToPodOfAgentToDischarge  = extractPathToPod(agentToDischarge);
-        const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(pathToPodOfAgentToDischarge, caveatPacket.getValueAsText());
+        const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(caveatPacket.getValueAsText());
         // Example of decrypted caveatId : "CAVEATKEY::predicate"
         if(decryptedCaveatId.includes("::")){
           const [caveatKey,predicate] = decryptedCaveatId.split("::");

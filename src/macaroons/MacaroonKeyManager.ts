@@ -20,25 +20,28 @@ export interface MacaroonKeyManagerI {
 export class MacaroonKeyManager implements MacaroonKeyManagerI {
   
   private readonly logger = getLoggerFor(this);
+  private readonly pathToRootOfPod:string;
 
-  public constructor(){}
+  public constructor(pathToRootOfPod:string){
+    this.pathToRootOfPod = pathToRootOfPod;
+  }
 
 
-  public getPublicDischargeKey(pathToRootOfPod:string):string{
-    const podName = extractPodName(pathToRootOfPod);
+  public getPublicDischargeKey():string{
+    const podName = extractPodName(this.pathToRootOfPod);
     const pathToPublicDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'public.key'
     return fs.readFileSync(pathToPublicDischargeKey).toString();
   }
 
-  private getPrivateDischargeKey(pathToRootOfPod:string):string{
-    const podName = extractPodName(pathToRootOfPod);
+  private getPrivateDischargeKey():string{
+    const podName = extractPodName(this.pathToRootOfPod);
     const pathToPrivateDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'private.key'
     return fs.readFileSync(pathToPrivateDischargeKey).toString();
   }
 
-  public encryptCaveatIdentifier(pathToRootOfPod:string, cId: string):string{
+  public encryptCaveatIdentifier(cId: string):string{
     try {
-      const publicKey = this.getPublicDischargeKey(pathToRootOfPod);
+      const publicKey = this.getPublicDischargeKey();
       const rsa = new NodeRSA(publicKey);
       const encrypted_cId = rsa.encrypt(cId).toString();
       return encrypted_cId;
@@ -47,9 +50,9 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   };
 
-  public decryptCaveatIdentifier(pathToRootOfPod:string, encrypted_cId:string):string{
+  public decryptCaveatIdentifier(encrypted_cId:string):string{
     try {
-      const privateKey = this.getPrivateDischargeKey(pathToRootOfPod);
+      const privateKey = this.getPrivateDischargeKey();
       const rsa = new NodeRSA(privateKey);
       const decrypted_cId = rsa.decrypt(encrypted_cId).toString();
       return decrypted_cId
@@ -58,9 +61,9 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   }
 
-  public getSecretRootKey(pathToRootOfPod:string):string{
+  public getSecretRootKey():string{
     try {
-      const podName = extractPodName(pathToRootOfPod);
+      const podName = extractPodName(this.pathToRootOfPod);
       return fs.readFileSync(process.cwd() + '/' + podName + REL_MINT_KEY_FOLDER_PATH + 'secret.key').toString();  
     } catch (error) {
       this.logger.info("Error retrieving secret macaroon key : " + error)

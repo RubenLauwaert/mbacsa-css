@@ -3,6 +3,11 @@ import { ResponseDescription,
   OkResponseDescription, guardedStreamFrom, Guarded, RepresentationMetadata, Representation, CredentialsExtractor } from '@solid/community-server';
 import { DischargeRequestParser } from './DischargeRequestParser';
 import { MacaroonDischarger } from './MacaroonDischarger';
+import { extractPathToPod } from '../../util/Util';
+import { MacaroonKeyManager } from '../../macaroons/MacaroonKeyManager';
+import { pem2jwk } from 'pem-jwk';
+import { publicDischargeKeyResponse } from '../../types/Response';
+
 
 
 export interface MacaroonDischargeHttpHandlerArgs {
@@ -57,10 +62,18 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
   const {target, body} = input.operation;
   if(target.path.endsWith('/key')){
-    // Generate response containing public discharge key
-    const publicDischargeKeyRequest = DischargeRequestParser.parsePublicKeyRequest(body);
-    const response = new OkResponseDescription(new RepresentationMetadata(), guardedStreamFrom("valid request !"));
-    return response;
+    if(DischargeRequestParser.isRequestBodyReadable(body)){
+      const requestBody = body.data.read();
+      const {subjectToRetrieveKeyFrom} = DischargeRequestParser.parsePublicKeyRequest(requestBody);
+      const pathToRootOfSubject = extractPathToPod(subjectToRetrieveKeyFrom);
+      const pemPublicDischargeKey = new MacaroonKeyManager(pathToRootOfSubject).getPublicDischargeKey();
+      const jwkPublicDischargeKey = pem2jwk(pemPublicDischargeKey);
+      const publicDischargeKeyResponse:publicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
+      const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
+      return new OkResponseDescription(new RepresentationMetadata(),responseData);
+    }else{
+      throw new Error("Request body is not readable !");
+    }
   }else{
     // Generate response that carries the rootMacaroon and corresponding discharge macaroon
     const dischargeRequest = DischargeRequestParser.parseDischargeRequest(body);
