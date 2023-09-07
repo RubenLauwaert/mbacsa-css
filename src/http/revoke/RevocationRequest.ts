@@ -1,4 +1,3 @@
-import { Credential } from "@solid/community-server"
 
 export interface RevocationRequest {
 

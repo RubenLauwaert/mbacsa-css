@@ -74,10 +74,10 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const serializedMacaroons = headers['macaroon'] as string;
     const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
     // Verify macaroons 
-    const verifier = new MacaroonsAuthorizer(target,macaroons);
-    const isAuthorized = verifier.isAuthorized();
+    const macaroonsAuthorizer = new MacaroonsAuthorizer(target,macaroons);
+    const isMacaroonAuthorized = macaroonsAuthorizer.isAuthorized();
 
-    if(isAuthorized){
+    if(isMacaroonAuthorized){
       this.logger.info("Request is authorized !");
       return this.operationHandler.handleSafe(input);
     }else{
