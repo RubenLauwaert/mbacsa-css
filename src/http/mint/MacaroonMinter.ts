@@ -17,7 +17,7 @@ export class MacaroonMinter {
   }
 
   public async mintMacaroon(mintRequest : MintRequest):Promise<string>{
-    const {resourceURI, requestor, dischargeKey} = mintRequest;
+    const {resourceURI, requestor, requestedAccessMode, dischargeKey} = mintRequest;
     const location = resourceURI;
     const identifier = uuidv4();
     const issuer = extractWebID(resourceURI);
@@ -26,6 +26,9 @@ export class MacaroonMinter {
     // Add issuer to root macaroon as first-party caveat
     const rm = new MacaroonsBuilder(location,secretKey,identifier)
       .add_first_party_caveat(`issuer = ${issuer}`)
+
+    // Add requested access mode to macaroon
+    rm.add_first_party_caveat(`mode = ${requestedAccessMode}`)
 
     // Add time constraints (Macaroon is valid for 24h)
     const oneHourLater = new Date();

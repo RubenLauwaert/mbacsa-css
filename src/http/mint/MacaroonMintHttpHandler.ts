@@ -108,7 +108,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const mintedMacaroon = await new MacaroonMinter().mintMacaroon(mintRequest);
       const responseData = guardedStreamFrom(mintedMacaroon);
       const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
-
+      this.logger.info("Minted macaroon for : " + requestor);
       return response;
 
     } catch (error) {

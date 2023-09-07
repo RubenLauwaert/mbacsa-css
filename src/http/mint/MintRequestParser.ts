@@ -7,10 +7,11 @@ const mintRequestBodySchema = {
   properties: {
     resourceURI: { type: "string", format: "uri" },
     requestor: { type: "string", format: "uri" },
+    requestedAccessMode: {type: "string"},
     // TODO: Add JWK scheme 
     dischargeKey: { type: "object" }
   },
-  required: ["resourceURI", "requestor", "dischargeKey"]
+  required: ["resourceURI", "requestor", "requestedAccessMode","dischargeKey"]
 };
 
 

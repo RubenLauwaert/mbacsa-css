@@ -1,4 +1,4 @@
-import { ResourceIdentifier, getLoggerFor } from "@solid/community-server";
+import { ResourceIdentifier, getLoggerFor, AccessMode } from "@solid/community-server";
 import { Macaroon, MacaroonsVerifier, TimestampCaveatVerifier } from "macaroons.js";
 import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
 import { extractPathToPod, extractWebID } from "../../util/Util";
@@ -39,6 +39,13 @@ export class MacaroonsAuthorizer {
     return true;
   }
 
+  // Verify access mode of macaroon
+  public AccessModeVerifier(caveat:string):boolean {
+    if(!caveat.includes(`mode = `)){return false;}
+    const mode = caveat.replace("mode = ","");
+    if(!Object.values(AccessMode).includes(mode as AccessMode)){return false;}
+    return true;
+  }
 
 
   public isAuthorized():boolean{
@@ -49,20 +56,17 @@ export class MacaroonsAuthorizer {
     const macaroonVerifier = new MacaroonsVerifier(this.rootMacaroon);
     
     // Verify issuer
-    macaroonVerifier.satisfyExact(`issuer = ${this.issuer}`);
+    macaroonVerifier.satisfyGeneral(this.IssuerVerifier);
+
+    // Verify access mode 
+    macaroonVerifier.satisfyGeneral(this.AccessModeVerifier);
     
     // Verify timestamp
-    macaroonVerifier.satisfyGeneral((caveat) => {
-      if(!caveat.includes("time < ")){return false;}
-      const expiryTime = parseInt(caveat.replace("time < ",""));
-      if(expiryTime  > Date.now()){
-        this.logger.info("Verified timestamp !");
-        return true;}
-      return false;
-    });
+    macaroonVerifier.satisfyGeneral(this.TimeStampVerifier);
     
     // Third-Party caveats verifier
     this.dischargeMacaroons.forEach((dischargeMacaroon) =>{
+      // Check if every discharge macaroon has discharged agent caveat
       macaroonVerifier.satisfyGeneral((caveat) => {
         if(!caveat.includes("agent = ")){return false;}
         else{return true;}
