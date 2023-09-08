@@ -43,7 +43,8 @@ export class MacaroonMinter {
     const tpCaveatId = caveatKey + "::" + predicate;
     // -- Encrypt third-party caveatId with given discharge key (public key of requestor)
     const rsa = new NodeRSA();
-    const key = rsa.importKey(jwk2pem(dischargeKey));
+    const publicDischargeKeyPem = jwk2pem(dischargeKey);
+    const key = rsa.importKey(publicDischargeKeyPem);
     const encryptedTpCaveatId = key.encrypt(tpCaveatId,'base64').toString();
 
     const am = rm.add_third_party_caveat(dischargeLocation,caveatKey,encryptedTpCaveatId)

@@ -7,10 +7,9 @@ const dischargeRequestBodySchema = {
   type: "object",
   properties: {
     serializedMacaroon: { type: "string" },
-    publicKey: { type: "string" },
     agentToDischarge: { type: "string" }
   },
-  required: ["serializedMacaroon", "publicKey", "agentToDischarge"]
+  required: ["serializedMacaroon", "agentToDischarge"]
 };
 
 const publicDischargeKeyRequestSchema = {
@@ -34,9 +33,7 @@ export class DischargeRequestParser {
       const jsonRequestString = body.data.read();
       if(this.isValidDischargeRequest(jsonRequestString)){
         const jsonRequest = JSON.parse(jsonRequestString);
-        return {serializedMacaroon: jsonRequest.serializedMacaroon,
-                agentToDischarge: jsonRequest.agentToDischarge,
-                publicKey: jsonRequest.publicKey};
+        return jsonRequest;
       }else{
         throw new Error("Request doesn't have the right JSON schema !");
       }

@@ -53,10 +53,12 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
   public decryptCaveatIdentifier(encrypted_cId:string):string{
     try {
       const privateKey = this.getPrivateDischargeKey();
-      const rsa = new NodeRSA(privateKey);
-      const decrypted_cId = rsa.decrypt(encrypted_cId).toString();
+      const rsa = new NodeRSA();
+      const key = rsa.importKey(privateKey,'private');
+      const decrypted_cId = key.decrypt(encrypted_cId,'utf8').toString();
       return decrypted_cId
     } catch (error) {
+      this.logger.info("Decrypting third-party caveat failed ! ")
       throw new Error("Decrypting caveat identifier failed : " + error)
     }
   }
