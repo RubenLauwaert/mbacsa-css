@@ -1,4 +1,5 @@
 import { Macaroon, MacaroonsDeSerializer } from "macaroons.js"
+import { WebID } from "../../util/Util";
 
 
 export class MacaroonsExtractor {
@@ -34,6 +35,38 @@ export class MacaroonsExtractor {
     return delegatedAgent;
   }
 
+  public static retrieveDelegationPosition(rootMacaroon:Macaroon, cId:string):number {
+    let position = 0;
+    const { caveatPackets } = rootMacaroon;
+    const thirdPartyCaveatPackets = caveatPackets.filter((caveatPacket,index,caveatPackets) => {
+      return (caveatPacket.type === 3) && (caveatPackets[index + 1].type === 4) && (caveatPackets[index + 2].type === 5);
+    })
+    for(let i = 0 ; i < thirdPartyCaveatPackets.length ; i++){
+      const tpCaveat = thirdPartyCaveatPackets[i];
+      if(tpCaveat.getValueAsText() === cId){
+        position = i + 1;
+      }
+    }
+    return position;
+  }
 
+  public static retrieveDelegationPositionForAgent(dischargeMacaroons:Macaroon[], agent: WebID):number{
+    let delegationPosition = 0;
+    for(let i = 0 ; i < dischargeMacaroons.length ; i++){
+      const dischargeMacaroon = dischargeMacaroons[i];
+      const dischargeMacaroonText = dischargeMacaroon.inspect();
+      if(dischargeMacaroonText.includes(`agent = ${agent}`)){
+        const caveatPackets = dischargeMacaroon.caveatPackets;
+        for(let caveatIndex = 0 ; caveatIndex < caveatPackets.length ; caveatIndex++){
+          const caveatText = caveatPackets[caveatIndex].getValueAsText();
+          if(caveatText.includes("position = ")){
+            delegationPosition = parseInt(caveatText.slice("position = ".length));
+          }
+        }
+      }
+    }
+    return delegationPosition;
+  }
+  
 
 }

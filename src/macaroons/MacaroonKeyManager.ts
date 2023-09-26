@@ -58,7 +58,6 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
       const decrypted_cId = key.decrypt(encrypted_cId,'utf8').toString();
       return decrypted_cId
     } catch (error) {
-      this.logger.info("Decrypting third-party caveat failed ! ")
       throw new Error("Decrypting caveat identifier failed : " + error)
     }
   }

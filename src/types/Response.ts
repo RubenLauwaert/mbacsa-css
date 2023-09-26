@@ -26,5 +26,7 @@ export interface MintResponse {
  * 
  */
 export interface RevocationResponse {
-
+  success: boolean
+  error?: string,
+  message?: string
 }

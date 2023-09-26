@@ -1,5 +1,7 @@
 const WEBID_POSTFIX = '/profile/card#me'
 
+export type WebID = string;
+
 export function extractPathToPod(resourceUri:string):string{
   const url = new URL(resourceUri);
   const baseUrl = url.origin;

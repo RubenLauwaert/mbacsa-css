@@ -17,9 +17,7 @@ export class MacaroonsAuthorizer {
     // Retrieve root/discharge macaroons : Root macaroons should always be the first macaroon in the list
     const [rootMacaroon,...dischargeMacaroons] = macaroons;
     this.rootMacaroon = rootMacaroon;
-    this.logger.info(rootMacaroon.inspect())
     this.dischargeMacaroons = dischargeMacaroons;
-
 
   }
 
@@ -56,21 +54,44 @@ export class MacaroonsAuthorizer {
     const macaroonVerifier = new MacaroonsVerifier(this.rootMacaroon);
     
     // Verify issuer
-    macaroonVerifier.satisfyGeneral(this.IssuerVerifier);
+    macaroonVerifier.satisfyGeneral((caveat) => {
+      if(!caveat.includes(`issuer = ${this.issuer}`)){return false;}
+      this.logger.info("Verified issuer !")
+      return true;
+    });
 
     // Verify access mode 
-    macaroonVerifier.satisfyGeneral(this.AccessModeVerifier);
+    macaroonVerifier.satisfyGeneral((caveat) => {
+      if(!caveat.includes("time < ")){return false;}
+      const expiryTime = parseInt(caveat.replace("time < ",""));
+      if(expiryTime  > Date.now()){
+        this.logger.info("Verified timestamp !");
+        return true;}
+      return false;
+    });
     
     // Verify timestamp
-    macaroonVerifier.satisfyGeneral(this.TimeStampVerifier);
+    macaroonVerifier.satisfyGeneral((caveat) => {
+      if(!caveat.includes(`mode = `)){return false;}
+      const mode = caveat.replace("mode = ","");
+      if(!Object.values(AccessMode).includes(mode as AccessMode)){return false;}
+      this.logger.info("Verified access mode !")
+      return true;
+    });
     
     // Third-Party caveats verifier
-    this.dischargeMacaroons.forEach((dischargeMacaroon) =>{
+    this.dischargeMacaroons.forEach((dischargeMacaroon,index) =>{
+      const delegationPosition = index + 1;
       // Check if every discharge macaroon has discharged agent caveat
       macaroonVerifier.satisfyGeneral((caveat) => {
         if(!caveat.includes("agent = ")){return false;}
         else{return true;}
       });
+      // Check if discharge macaroons have sequential positions
+      macaroonVerifier.satisfyGeneral((caveat) => {
+        if(!caveat.includes(`position = ${delegationPosition}`)){return false;}
+        else{return true;}
+      })
       macaroonVerifier.satisfy3rdParty(dischargeMacaroon);
     })
     
@@ -78,9 +99,8 @@ export class MacaroonsAuthorizer {
     // Perform validation of macaroon
     const rootOfIssuer =  extractPathToPod(this.target.path);
     const rootSecretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
-    const isVerified = macaroonVerifier.isValid(rootSecretKey);
-    return isVerified;
-  
+    const isValid = macaroonVerifier.isValid(rootSecretKey);
+    return isValid; 
   }
 
 

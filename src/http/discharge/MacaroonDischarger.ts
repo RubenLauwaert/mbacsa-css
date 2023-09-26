@@ -3,6 +3,7 @@ import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeS
 import { getLoggerFor } from "@solid/community-server";
 import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
 import { extractPathToPod } from "../../util/Util";
+import { MacaroonsExtractor } from "../authorization/MacaroonsExtractor";
 
 
 export interface ThirdPartyCaveat {
@@ -66,18 +67,20 @@ export class MacaroonDischarger {
   }
 
 
-
   public generateDischargeMacaroon(dischargeRequest:DischargeRequest): string{
     const {serializedMacaroon, agentToDischarge} = dischargeRequest;
     // Deserialize macaroon
-    const deserializedMacaroon = MacaroonsDeSerializer.deserialize(serializedMacaroon);
+    const rootMacaroon = MacaroonsDeSerializer.deserialize(serializedMacaroon);
     // Filter Third-Party caveatPackets that have the same caveat location as this server
-    const filteredCaveatPackets = this.filterThirdPartyCaveats(deserializedMacaroon);
+    const filteredCaveatPackets = this.filterThirdPartyCaveats(rootMacaroon);
     // Decrypt third-party cId with corresponding private key of generated keypair
     const {caveatKey,predicate, encryptedCaveat} = this.getDecryptedCaveatToDischarge(filteredCaveatPackets,agentToDischarge);
+    // Get position in chain of delegations
+    const delegationPosition = MacaroonsExtractor.retrieveDelegationPosition(rootMacaroon,encryptedCaveat);
     // Create new discharge macaroon
     return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
             .add_first_party_caveat(`agent = ${agentToDischarge}`)
+            .add_first_party_caveat(`position = ${delegationPosition}`)
             .getMacaroon().serialize();
 
   }
