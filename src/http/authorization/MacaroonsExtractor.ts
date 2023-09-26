@@ -16,7 +16,7 @@ export class MacaroonsExtractor {
       });
       return macaroons; 
     } catch (error) {
-      throw new Error('Could not extract macaroons given serialized macaroons string !');
+      throw new Error('Could not extract macaroons given serialized macaroons !');
     }
   }
 

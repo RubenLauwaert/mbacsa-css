@@ -4,7 +4,7 @@ import { ResponseDescription,
 import { DischargeRequestParser } from './DischargeRequestParser';
 import { MacaroonDischarger } from './MacaroonDischarger';
 import { extractPathToPod } from '../../util/Util';
-import { MacaroonKeyManager } from '../../macaroons/MacaroonKeyManager';
+import { MacaroonKeyManager } from '../../mbacsa/MacaroonKeyManager';
 import { pem2jwk } from 'pem-jwk';
 import { publicDischargeKeyResponse } from '../../types/Response';
 

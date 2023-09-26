@@ -2,6 +2,8 @@ import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, Mode
       getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError } from '@solid/community-server';
 import { MacaroonsExtractor } from './MacaroonsExtractor';
 import { MacaroonsAuthorizer } from './MacaroonsAuthorizer';
+import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
+import { RevocationStore } from '../../storage/RevocationStore';
 
 
 export interface AuthorizingHttpHandlerArgs {
@@ -76,12 +78,17 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     // Verify macaroons 
     const macaroonsAuthorizer = new MacaroonsAuthorizer(target,macaroons);
     const isMacaroonAuthorized = macaroonsAuthorizer.isAuthorized();
+    if(!isMacaroonAuthorized){throw new UnauthorizedHttpError("Presented macaroon is not authorized !")}
+    // Convert macaroons to MbacsaCredential 
+    const mbacsaCredential = new MbacsaCredential(macaroons);
+    // Check if credential is not revoked
+    const revocationStore = new RevocationStore(mbacsaCredential.getIssuer());
+    const revocationStatements = await revocationStore.get(mbacsaCredential.getIdentifier());
+    if(revocationStatements){
+      const isRevoked = mbacsaCredential.isCredentialRevoked(revocationStatements);
+      if(isRevoked){throw new Error(`Delegated permissions for agent : ${mbacsaCredential.getAgentLastInChain()} are revoked !`)}
+    }
 
-    if(isMacaroonAuthorized){
-      this.logger.info("Request is authorized !");
-      return this.operationHandler.handleSafe(input);
-    }else{
-      throw new UnauthorizedHttpError("Could not authorize requests via macaroons !");
-    }    
+    return this.operationHandler.handleSafe(input);
   }
 }

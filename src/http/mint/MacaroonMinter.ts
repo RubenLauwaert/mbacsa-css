@@ -4,7 +4,7 @@ import { MacaroonsBuilder } from "macaroons.js";
 import NodeRSA from "node-rsa";
 import { v4 as uuidv4 } from 'uuid';
 import {jwk2pem} from 'pem-jwk';
-import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
+import { MacaroonKeyManager } from "../../mbacsa/MacaroonKeyManager";
 import { extractPathToPod, extractWebID } from "../../util/Util";
 
 

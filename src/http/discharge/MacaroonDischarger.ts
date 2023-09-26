@@ -1,7 +1,7 @@
 import { DischargeRequest } from "./DischargeRequest";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
 import { getLoggerFor } from "@solid/community-server";
-import { MacaroonKeyManager } from "../../macaroons/MacaroonKeyManager";
+import { MacaroonKeyManager } from "../../mbacsa/MacaroonKeyManager";
 import { extractPathToPod } from "../../util/Util";
 import { MacaroonsExtractor } from "../authorization/MacaroonsExtractor";
 
