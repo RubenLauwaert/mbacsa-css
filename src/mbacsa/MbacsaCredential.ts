@@ -3,18 +3,21 @@ import { WebID, extractWebID } from "../util/Util";
 import { DelegationToken } from "./DelegationToken";
 import { RevocationStatement } from "../types/RevocationStatement";
 import { AccessMode } from "@solid/community-server";
+import { MacaroonsAuthorizer } from "../http/authorization/MacaroonsAuthorizer";
 
 export class MbacsaCredential {
 
   private readonly target:string
   private readonly chainLength:number;
   private readonly rootMacaroon:Macaroon;
+  private readonly dischargeMacaroons:Macaroon[];
   private readonly attenuatedAccessMode:AccessMode;
   private readonly delegationTokens:DelegationToken[]
 
   public constructor(macaroons:Macaroon[]){
     const [rootMacaroon,...dischargeMacaroons] = macaroons;
     this.rootMacaroon = rootMacaroon;
+    this.dischargeMacaroons = dischargeMacaroons;
     this.target = this.rootMacaroon.location;   
     this.delegationTokens = dischargeMacaroons.map((dischargeMacaroon) => {
       return new DelegationToken(dischargeMacaroon);
@@ -32,7 +35,16 @@ export class MbacsaCredential {
   public getChainLength():number{return this.chainLength;};
   public getAttenuatedAccessMode():AccessMode{return this.attenuatedAccessMode}
   public getAgentLastInChain():WebID{return this.delegationTokens[this.delegationTokens.length - 1].getDelegatee();}
-
+  public getAgentPositionInChain(agent: WebID):number|undefined{
+    let position;
+    for(let chainIndex = 0 ; chainIndex < this.delegationTokens.length ; chainIndex ++){
+      const delegationToken = this.delegationTokens[chainIndex];
+      if(delegationToken.getDelegatee() === agent){
+        position = delegationToken.getPosition();
+      }
+    }
+    return position;
+  }
 
   // Checkers
   public isCredentialRevoked(revocationStatements: RevocationStatement[]):boolean{
@@ -45,6 +57,12 @@ export class MbacsaCredential {
       }
     }
     return false;
+  }
+
+
+  public isCredentialAuthorized():boolean {
+    const isValid = new MacaroonsAuthorizer({path: this.target},[this.rootMacaroon,...this.dischargeMacaroons]).isValid();
+    return isValid;
   }
 
   // Helpers

@@ -72,21 +72,20 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
   const { request, operation } = input;
 
-  // Parse Request data
   if(operation.body.data.readable){
     const requestData = operation.body.data.read();
     try {
-      // Will throw an error if request dissatisfies JSON Schema
+      // 1.  Parse body of request and check if it is structurally correct
       const mintRequest = MintRequestParser.parseMintRequest(requestData);
 
-      // Authenticate requestor
+      // 2. Authenticate requestor via DPOP
       const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
       this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
-      const {requestor} = mintRequest;
+      const {requestor, requestedAccessMode} = mintRequest;
       if(credentials.agent?.webId !== undefined && requestor.toString() !== credentials.agent!.webId){
         throw new Error("Invalid credentials !");
       }
-      // Authorize request
+      // 3. Check if requestor is authorized via WAC to access the requested resource to mint a token for
       const {resourceURI} = mintRequest;
       const requestedModes = new IdentifierSetMultiMap<AccessMode>()
         .add({path: resourceURI.toString()},AccessMode.read);
@@ -97,14 +96,13 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       try {
         await this.authorizer.handleSafe({ credentials, requestedModes, availablePermissions });
         operation.availablePermissions = availablePermissions;
+        this.logger.verbose(`Authorization succeeded !`);
       } catch (error: unknown) {
         this.logger.verbose(`Authorization failed: ${(error as any).message}`);
         throw error;
       }
 
-      this.logger.verbose(`Authorization succeeded !`);
-
-      // Mint Macaroon 
+      // 4. Mint a token (macaroon) that gives delegation rights to the minter for the requested resource
       const mintedMacaroon = await new MacaroonMinter().mintMacaroon(mintRequest);
       const responseData = guardedStreamFrom(JSON.stringify({mintedMacaroon: mintedMacaroon}));
       const response = new OkResponseDescription(new RepresentationMetadata(),responseData)

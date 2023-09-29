@@ -43,11 +43,11 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   if(target.path.includes(this.baseDischargeUrl)){
     // Request to discharge a macaroon
     if(target.path === this.baseDischargeUrl){
-      this.logger.warn("Attempting to discharge a macaroon!")
+      this.logger.info("Attempting to discharge a macaroon!")
       return;
     }
     else if(target.path.endsWith('/key')){
-      this.logger.warn("Attempting to retrieve public discharge key")
+      this.logger.info("Attempting to retrieve public discharge key")
       return;
     }
     else{
@@ -70,6 +70,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const jwkPublicDischargeKey = pem2jwk(pemPublicDischargeKey);
       const publicDischargeKeyResponse:publicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
       const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
+      this.logger.info("Successfully shared public discharge key of : " + subjectToRetrieveKeyFrom);
       return new OkResponseDescription(new RepresentationMetadata(),responseData);
     }else{
       throw new Error("Request body is not readable !");
@@ -80,6 +81,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
     const serializedDischargeMacaroon = new MacaroonDischarger(this.baseDischargeUrl).generateDischargeMacaroon(dischargeRequest);
     const responseData = guardedStreamFrom(JSON.stringify({dischargeMacaroon: serializedDischargeMacaroon}));
     const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
+    this.logger.info("Successfully generated a delegation token (discharge macaroon) for " + dischargeRequest.agentToDischarge)
     return response;
   }
   

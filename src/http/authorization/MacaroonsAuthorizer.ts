@@ -46,7 +46,7 @@ export class MacaroonsAuthorizer {
   }
 
 
-  public isAuthorized():boolean{
+  public isValid():boolean{
     // Check if target matches location of root macaroon
     if(this.target.path !== this.rootMacaroon.location){return false};
     

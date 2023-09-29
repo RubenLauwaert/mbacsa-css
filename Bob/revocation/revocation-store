@@ -1,3 +1,50 @@
 {
-
+  "8a95380b-0ca9-4ccd-90a6-b888fec01e7f": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "8c56541b-ad6e-4061-a19a-3f94c837f1c7": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "17b7211e-af0b-4421-97e8-4bce1fb6c5b2": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "69d8c147-dce0-4474-b55a-4d6675811f25": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "c8283f1f-34cb-49a7-af32-5591f0f483bf": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "e7e302ed-3c5f-4075-aee4-5dad9c2318dd": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "11b8acff-8bb6-4391-8ebf-5afbe4202c99": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "c971800d-722b-4bb6-8edb-e01d917852cf": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ]
 }

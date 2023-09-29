@@ -20,9 +20,13 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     this.lockIdentifier = { path: this.filePath };
   }
 
-  public async get(key: string): Promise<RevocationStatement[] | undefined> {
+  public async get(key: string): Promise<RevocationStatement[]> {
+    let revocationStatements:RevocationStatement[] = [];
     const json = await this.getJsonSafely();
-    return json[key] as RevocationStatement[];
+    if(json[key]){
+      revocationStatements = json[key] as RevocationStatement[];
+    }
+    return revocationStatements;
   }
 
   public async has(key: string): Promise<boolean> {

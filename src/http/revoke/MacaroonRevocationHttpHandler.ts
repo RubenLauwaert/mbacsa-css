@@ -8,6 +8,7 @@ import { extractPathToPod, extractPodName } from '../../util/Util';
 import { RevocationResponse } from '../../types/Response';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { RevocationStatement } from '../../types/RevocationStatement';
+import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 
 export interface MacaroonRevocationHttpHandlerArgs {
   /**
@@ -62,32 +63,24 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   // 2. Authenticate requestor
   const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
   const authenticatedAgent = credentials.agent?.webId;
+    // Check if authenticated agent is equal to revoker
   if(authenticatedAgent !== revoker){throw new Error("Revoker does not match authenticated agent !")};
   // 3. Extract macaroon + discharge macaroons to revoke 
   const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
-  const [rootMacaroon,...dischargeMacaroons] = macaroons;
-  // 4. Verify if macaroon to revoke is valid 
-  this.logger.info(rootMacaroon.location)
-  const resourceURI = {path: rootMacaroon.location};
-  const macaroonsVerifier = new MacaroonsAuthorizer(resourceURI,macaroons);
-  const isAuthorized = macaroonsVerifier.isAuthorized();
-  if(!isAuthorized){throw new Error("Unauthorized to make revocation request: presented macaroon is not valid !")};
-
-  // Check if revoker is present in chain of delegations (discharge macaroons)
-  const positionRevoker = MacaroonsExtractor.retrieveDelegationPositionForAgent(dischargeMacaroons, revoker);
-  if(positionRevoker === 0){throw new Error("Position of given revoker could not be found in discharge macaroons !")}
-  // Check if revokee is present in chain of delegations (discharge macaroons)
-  const positionRevokee = MacaroonsExtractor.retrieveDelegationPositionForAgent(dischargeMacaroons,revokee);
-  if(positionRevokee === 0){throw new Error("Position of given revokee could not be found in discharge macaroons !")}
-  // Check if revoker is previous (in)direct delegator of revokee (check positions in chain)
-  if(positionRevoker > positionRevokee){throw new Error("Revoker is not authorized to revoke revokee : revoker is not an indirect delegator of revokee !")}
-
-
+  // 4. Convert macaroons to MbacsaCredential
+  const mbacsaCredential = new MbacsaCredential(macaroons);
+  const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
+  const positionRevoker = mbacsaCredential.getAgentPositionInChain(revoker);
+  const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee);
+  if(!positionRevoker){throw new Error("Revoker does not exist in chain of delegations of mbacsa credential !")}
+  if(!positionRevokee){throw new Error("Revokee does not exist in chain of delegations of mbacsa credential !")}
+  if(positionRevoker >= positionRevokee){throw new Error("Revoker is not a delegator of revokee !")}
+      // Updating revocation store 
   try {
-    // Updating revocation store 
+
     const store = new RevocationStore(resourceOwner);
     const newRevocationStatement:RevocationStatement = {revokee, positionRevokee}
-    await store.insertRevocationStatement(rootMacaroon.identifier, newRevocationStatement);
+    await store.insertRevocationStatement(mbacsaCredential.getIdentifier(), newRevocationStatement);
     this.logger.info("Successfully updated the revocation store for : " + resourceOwner);
     // Send response 
     const revocationResponse:RevocationResponse = {success: true }

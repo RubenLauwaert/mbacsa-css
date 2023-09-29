@@ -29,30 +29,17 @@ export interface AuthorizingHttpHandlerArgs {
   operationHandler: OperationHttpHandler;
 }
 
-/**
- * Handles all the necessary steps for an authorization.
- * Errors if authorization fails, otherwise passes the parameter to the operationHandler handler.
- * The following steps are executed:
- *  - Extracting credentials from the request.
- *  - Extracting the required permissions.
- *  - Reading the allowed permissions for the credentials.
- *  - Validating if this operation is allowed.
- */
 export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
   private readonly logger = getLoggerFor(this);
 
   private readonly credentialsExtractor: CredentialsExtractor;
   private readonly modesExtractor: ModesExtractor;
-  private readonly permissionReader: PermissionReader;
-  private readonly authorizer: Authorizer;
   private readonly operationHandler: OperationHttpHandler;
 
   public constructor(args: AuthorizingHttpHandlerArgs) {
     super();
     this.credentialsExtractor = args.credentialsExtractor;
     this.modesExtractor = args.modesExtractor;
-    this.permissionReader = args.permissionReader;
-    this.authorizer = args.authorizer;
     this.operationHandler = args.operationHandler;
   }
 
@@ -75,19 +62,15 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     // Extract macaroons
     const serializedMacaroons = headers['macaroon'] as string;
     const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
-    // Verify macaroons 
-    const macaroonsAuthorizer = new MacaroonsAuthorizer(target,macaroons);
-    const isMacaroonAuthorized = macaroonsAuthorizer.isAuthorized();
-    if(!isMacaroonAuthorized){throw new UnauthorizedHttpError("Presented macaroon is not authorized !")}
-    // Convert macaroons to MbacsaCredential 
+    // Convert macaroons to MbacsaCredential
     const mbacsaCredential = new MbacsaCredential(macaroons);
-    // Check if credential is not revoked
-    const revocationStore = new RevocationStore(mbacsaCredential.getIssuer());
-    const revocationStatements = await revocationStore.get(mbacsaCredential.getIdentifier());
-    if(revocationStatements){
-      const isRevoked = mbacsaCredential.isCredentialRevoked(revocationStatements);
-      if(isRevoked){throw new Error(`Delegated permissions for agent : ${mbacsaCredential.getAgentLastInChain()} are revoked !`)}
-    }
+    // Check if credential is authorized
+    const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
+    if(!isCredentialAuthorized){throw new Error("Presented Mbacsa credential is not authorized !")}
+    // Check if credential is revoked
+    const revocationStatements = await new RevocationStore(mbacsaCredential.getIssuer()).get(mbacsaCredential.getIdentifier());
+    const isCredentialRevoked = mbacsaCredential.isCredentialRevoked(revocationStatements);
+    if(isCredentialRevoked){throw new Error("Presented Mbacsa credential is revoked !")}
     // Check if attenuated access mode contained in mbacsa credential equals access mode of request
     const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
     const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
