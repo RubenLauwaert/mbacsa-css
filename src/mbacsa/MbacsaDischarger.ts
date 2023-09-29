@@ -1,9 +1,9 @@
-import { DischargeRequest } from "./DischargeRequest";
+import { DischargeRequest } from "../types/Requests";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
 import { getLoggerFor } from "@solid/community-server";
-import { MacaroonKeyManager } from "../../mbacsa/MacaroonKeyManager";
-import { extractPathToPod } from "../../util/Util";
-import { MacaroonsExtractor } from "../authorization/MacaroonsExtractor";
+import { MacaroonKeyManager } from "./MbacsaKeyManager";
+import { extractPathToPod } from "../util/Util";
+import { MacaroonsExtractor } from "./MacaroonsExtractor";
 
 
 export interface ThirdPartyCaveat {

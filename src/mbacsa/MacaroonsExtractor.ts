@@ -1,5 +1,5 @@
 import { Macaroon, MacaroonsDeSerializer } from "macaroons.js"
-import { WebID } from "../../util/Util";
+import { WebID } from "../util/Util";
 
 
 export class MacaroonsExtractor {

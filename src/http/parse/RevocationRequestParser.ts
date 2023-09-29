@@ -1,5 +1,5 @@
 import { Representation } from "@solid/community-server";
-import { RevocationRequest } from "./RevocationRequest";
+import { RevocationRequest } from "../../types/Requests";
 import {validate} from 'jsonschema';
 
 const revocationRequestBodySchema = {

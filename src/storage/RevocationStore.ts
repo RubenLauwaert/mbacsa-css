@@ -1,4 +1,4 @@
-import { EqualReadWriteLocker, FileSystemResourceLocker, KeyValueStorage, VoidLocker, getLoggerFor, isSystemError } from "@solid/community-server";
+import { EqualReadWriteLocker, FileSystemResourceLocker, KeyValueStorage, VoidLocker, WrappedExpiringReadWriteLocker, getLoggerFor, isSystemError } from "@solid/community-server";
 import { WebID, extractPathToPod, extractPodName } from "../util/Util";
 import {writeJson, readJson} from 'fs-extra'
 import { RevocationStatement } from "../types/RevocationStatement";

@@ -1,7 +1,7 @@
 import { ResponseDescription,
   getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, guardedStreamFrom, OkResponseDescription, RepresentationMetadata, CredentialsExtractor, ModesExtractor, PermissionReader, ensureTrailingSlash, CredentialSet, IdentifierSetMultiMap, AccessMode, ResourceIdentifier, Authorizer } from '@solid/community-server';
-import { MintRequestParser } from './MintRequestParser';
-import { MacaroonMinter } from './MacaroonMinter';
+import { MintRequestParser } from '../parse/MintRequestParser';
+import { MacaroonMinter } from '../../mbacsa/MbacsaMinter';
 
   export interface MacaroonMintHttpHandlerArgs {
     endpoint : string,

@@ -1,7 +1,6 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
       getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError } from '@solid/community-server';
-import { MacaroonsExtractor } from './MacaroonsExtractor';
-import { MacaroonsAuthorizer } from './MacaroonsAuthorizer';
+import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 import { RevocationStore } from '../../storage/RevocationStore';
 

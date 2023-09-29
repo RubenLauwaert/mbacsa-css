@@ -1,11 +1,11 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
     getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash, JsonFileStorage , ReadWriteLocker, EqualReadWriteLocker, FileSystemResourceLocker, VoidLocker, OkResponseDescription, RepresentationMetadata, guardedStreamFrom } from '@solid/community-server';
 import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
-import { RevocationRequestParser } from './RevocationRequestParser';
-import { MacaroonsExtractor } from '../authorization/MacaroonsExtractor';
-import { MacaroonsAuthorizer } from '../authorization/MacaroonsAuthorizer';
+import { RevocationRequestParser } from '../parse/RevocationRequestParser';
+import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
+import { MacaroonsAuthorizer } from '../../mbacsa/MacaroonsAuthorizer';
 import { extractPathToPod, extractPodName } from '../../util/Util';
-import { RevocationResponse } from '../../types/Response';
+import { RevocationResponse } from '../../types/Responses';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { RevocationStatement } from '../../types/RevocationStatement';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';

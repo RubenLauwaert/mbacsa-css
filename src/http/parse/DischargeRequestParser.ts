@@ -1,5 +1,5 @@
 import { Representation, getLoggerFor } from "@solid/community-server";
-import { DischargeRequest, PublicKeyDischargeRequest } from "./DischargeRequest";
+import { DischargeRequest, PublicKeyDischargeRequest } from "../../types/Requests";
 import {validate} from 'jsonschema';
 
 

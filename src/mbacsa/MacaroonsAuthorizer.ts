@@ -1,7 +1,7 @@
 import { ResourceIdentifier, getLoggerFor, AccessMode } from "@solid/community-server";
 import { Macaroon, MacaroonsVerifier, TimestampCaveatVerifier } from "macaroons.js";
-import { MacaroonKeyManager } from "../../mbacsa/MacaroonKeyManager";
-import { extractPathToPod, extractWebID } from "../../util/Util";
+import { MacaroonKeyManager } from "./MbacsaKeyManager";
+import { extractPathToPod, extractWebID } from "../util/Util";
 
 export class MacaroonsAuthorizer {
 
@@ -56,7 +56,6 @@ export class MacaroonsAuthorizer {
     // Verify issuer
     macaroonVerifier.satisfyGeneral((caveat) => {
       if(!caveat.includes(`issuer = ${this.issuer}`)){return false;}
-      this.logger.info("Verified issuer !")
       return true;
     });
 
@@ -65,7 +64,6 @@ export class MacaroonsAuthorizer {
       if(!caveat.includes("time < ")){return false;}
       const expiryTime = parseInt(caveat.replace("time < ",""));
       if(expiryTime  > Date.now()){
-        this.logger.info("Verified timestamp !");
         return true;}
       return false;
     });
@@ -75,7 +73,6 @@ export class MacaroonsAuthorizer {
       if(!caveat.includes(`mode = `)){return false;}
       const mode = caveat.replace("mode = ","");
       if(!Object.values(AccessMode).includes(mode as AccessMode)){return false;}
-      this.logger.info("Verified access mode !")
       return true;
     });
     

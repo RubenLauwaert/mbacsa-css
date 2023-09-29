@@ -1,5 +1,5 @@
 import { getLoggerFor } from "@solid/community-server";
-import { MintRequest } from "./MintRequest";
+import { MintRequest } from "../../types/Requests";
 import { validate } from "jsonschema";
 
 const mintRequestBodySchema = {

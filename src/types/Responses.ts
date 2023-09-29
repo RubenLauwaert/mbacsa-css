@@ -4,13 +4,13 @@ import { RSA_JWK } from "pem-jwk";
  * 
  */
 export interface DischargeResponse {
-
+  dischargeMacaroon: string
 }
 
 /**
  * 
  */
-export interface publicDischargeKeyResponse {
+export interface PublicDischargeKeyResponse {
   dischargeKey: RSA_JWK,
 }
 
@@ -19,14 +19,12 @@ export interface publicDischargeKeyResponse {
  */
 
 export interface MintResponse {
-
+  mintedMacaroon: string
 }
 
 /**
  * 
  */
 export interface RevocationResponse {
-  success: boolean
-  error?: string,
-  message?: string
+
 }

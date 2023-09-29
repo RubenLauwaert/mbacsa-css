@@ -1,12 +1,12 @@
 import { ResponseDescription,
   getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, ensureTrailingSlash, 
   OkResponseDescription, guardedStreamFrom, Guarded, RepresentationMetadata, Representation, CredentialsExtractor } from '@solid/community-server';
-import { DischargeRequestParser } from './DischargeRequestParser';
-import { MacaroonDischarger } from './MacaroonDischarger';
+import { DischargeRequestParser } from '../parse/DischargeRequestParser';
+import { MacaroonDischarger } from '../../mbacsa/MbacsaDischarger';
 import { extractPathToPod } from '../../util/Util';
-import { MacaroonKeyManager } from '../../mbacsa/MacaroonKeyManager';
+import { MacaroonKeyManager } from '../../mbacsa/MbacsaKeyManager';
 import { pem2jwk } from 'pem-jwk';
-import { publicDischargeKeyResponse } from '../../types/Response';
+import { PublicDischargeKeyResponse } from '../../types/Responses';
 
 
 
@@ -68,7 +68,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const pathToRootOfSubject = extractPathToPod(subjectToRetrieveKeyFrom);
       const pemPublicDischargeKey = new MacaroonKeyManager(pathToRootOfSubject).getPublicDischargeKey();
       const jwkPublicDischargeKey = pem2jwk(pemPublicDischargeKey);
-      const publicDischargeKeyResponse:publicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
+      const publicDischargeKeyResponse:PublicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
       const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
       this.logger.info("Successfully shared public discharge key of : " + subjectToRetrieveKeyFrom);
       return new OkResponseDescription(new RepresentationMetadata(),responseData);

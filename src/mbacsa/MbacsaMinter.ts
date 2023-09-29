@@ -1,11 +1,11 @@
 import { ensureTrailingSlash, getLoggerFor} from "@solid/community-server";
-import { MintRequest } from "./MintRequest";
+import { MintRequest } from "../types/Requests";
 import { MacaroonsBuilder } from "macaroons.js";
 import NodeRSA from "node-rsa";
 import { v4 as uuidv4 } from 'uuid';
 import {jwk2pem} from 'pem-jwk';
-import { MacaroonKeyManager } from "../../mbacsa/MacaroonKeyManager";
-import { extractPathToPod, extractWebID } from "../../util/Util";
+import { MacaroonKeyManager } from "./MbacsaKeyManager";
+import { extractPathToPod, extractWebID } from "../util/Util";
 
 
 export class MacaroonMinter {
