@@ -60,14 +60,17 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
 
 
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
-  const {target, body} = input.operation;
+  const {target, body,} = input.operation;
   if(target.path.endsWith('/key')){
     if(DischargeRequestParser.isRequestBodyReadable(body)){
+      // 1. Parse body of request
       const requestBody = body.data.read();
       const {subjectToRetrieveKeyFrom} = DischargeRequestParser.parsePublicKeyRequest(requestBody);
+      // 2. Retrieve public discharge key from pod of subject to retrieve from
       const pathToRootOfSubject = extractPathToPod(subjectToRetrieveKeyFrom);
       const pemPublicDischargeKey = new MacaroonKeyManager(pathToRootOfSubject).getPublicDischargeKey();
       const jwkPublicDischargeKey = pem2jwk(pemPublicDischargeKey);
+      // 3. Construct response
       const publicDischargeKeyResponse:PublicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
       const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
       this.logger.info("Successfully shared public discharge key of : " + subjectToRetrieveKeyFrom);
@@ -76,8 +79,13 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       throw new Error("Request body is not readable !");
     }
   }else{
-    // Generate response that carries the rootMacaroon and corresponding discharge macaroon
+    // 1. Parse body of request
     const dischargeRequest = DischargeRequestParser.parseDischargeRequest(body);
+    // 2. Authenticate agent to discharge via DPoP 
+    const credentials = await this.credentialsExtractor.handleSafe(input.request)
+    const authenticatedAgent = credentials.agent?.webId
+    const { agentToDischarge } = dischargeRequest;
+    if(authenticatedAgent !== agentToDischarge){throw new Error("The authenticated agent is not equal to the agent that requests a discharge !")}
     const serializedDischargeMacaroon = new MacaroonDischarger(this.baseDischargeUrl).generateDischargeMacaroon(dischargeRequest);
     const responseData = guardedStreamFrom(JSON.stringify({dischargeMacaroon: serializedDischargeMacaroon}));
     const response = new OkResponseDescription(new RepresentationMetadata(),responseData)

@@ -74,6 +74,7 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
     const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
     const requestedAccessMode = requestedAccessMap.values().next().value;
+    this.logger.info(requestedAccessMode);
     if(attenuatedMode !== requestedAccessMode){throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
     
     return this.operationHandler.handleSafe(input);
