@@ -88,7 +88,12 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
       const isRevoked = mbacsaCredential.isCredentialRevoked(revocationStatements);
       if(isRevoked){throw new Error(`Delegated permissions for agent : ${mbacsaCredential.getAgentLastInChain()} are revoked !`)}
     }
-
+    // Check if attenuated access mode contained in mbacsa credential equals access mode of request
+    const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
+    const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
+    const requestedAccessMode = requestedAccessMap.values().next().value;
+    if(attenuatedMode !== requestedAccessMode){throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
+    
     return this.operationHandler.handleSafe(input);
   }
 }
