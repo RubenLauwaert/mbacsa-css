@@ -2,7 +2,7 @@ import { ResponseDescription,
   getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, ensureTrailingSlash, 
   OkResponseDescription, guardedStreamFrom, Guarded, RepresentationMetadata, Representation, CredentialsExtractor } from '@solid/community-server';
 import { DischargeRequestParser } from '../parse/DischargeRequestParser';
-import { MacaroonDischarger } from '../../mbacsa/MbacsaDischarger';
+import { MacaroonDischarger } from './MbacsaDischarger';
 import { extractPathToPod } from '../../util/Util';
 import { MacaroonKeyManager } from '../../mbacsa/MbacsaKeyManager';
 import { pem2jwk } from 'pem-jwk';

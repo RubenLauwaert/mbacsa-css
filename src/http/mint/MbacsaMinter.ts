@@ -1,11 +1,11 @@
 import { ensureTrailingSlash, getLoggerFor} from "@solid/community-server";
-import { MintRequest } from "../types/Requests";
+import { MintRequest } from "../../types/Requests";
 import { MacaroonsBuilder } from "macaroons.js";
 import NodeRSA from "node-rsa";
 import { v4 as uuidv4 } from 'uuid';
 import {jwk2pem} from 'pem-jwk';
-import { MacaroonKeyManager } from "./MbacsaKeyManager";
-import { extractPathToPod, extractWebID } from "../util/Util";
+import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
+import { extractPathToPod, extractWebID } from "../../util/Util";
 
 
 export class MacaroonMinter {
@@ -17,7 +17,7 @@ export class MacaroonMinter {
   }
 
   public async mintMacaroon(mintRequest : MintRequest):Promise<string>{
-    const {resourceURI, requestor, requestedAccessMode, dischargeKey} = mintRequest;
+    const {resourceURI, requestor, mode, dischargeKey} = mintRequest;
     const location = resourceURI;
     const identifier = uuidv4();
     const issuer = extractWebID(resourceURI);
@@ -28,7 +28,7 @@ export class MacaroonMinter {
       .add_first_party_caveat(`issuer = ${issuer}`)
 
     // Add requested access mode to macaroon
-    rm.add_first_party_caveat(`mode = ${requestedAccessMode}`)
+    rm.add_first_party_caveat(`mode = ${mode}`)
 
     // Add time constraints (Macaroon is valid for 24h)
     const oneHourLater = new Date();

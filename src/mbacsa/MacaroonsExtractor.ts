@@ -1,5 +1,6 @@
 import { Macaroon, MacaroonsDeSerializer } from "macaroons.js"
 import { WebID } from "../util/Util";
+import { AccessMode } from "@solid/community-server";
 
 
 export class MacaroonsExtractor {
@@ -19,6 +20,24 @@ export class MacaroonsExtractor {
       throw new Error('Could not extract macaroons given serialized macaroons !');
     }
   }
+
+
+  public static extractModeFromMacaroon(macaroon:Macaroon):AccessMode {
+    const caveats = macaroon.caveatPackets;
+    let mode = AccessMode.read;
+    for(let i = 0 ; i < caveats.length ; i++){
+      const caveat = caveats[i];
+      const caveatMessage = caveat.getValueAsText();
+      if(caveatMessage.includes("mode = ")){
+        const modeStr = caveatMessage.split('=')[1].trim();
+        mode = AccessMode[modeStr as keyof typeof AccessMode];
+        break;
+      }
+    }
+    return mode;
+  }
+
+
 
   public static extractDelegatedAgentFromMacaroon(macaroon:Macaroon):string {
     const caveats = macaroon.caveatPackets;

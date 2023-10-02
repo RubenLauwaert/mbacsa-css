@@ -1,7 +1,7 @@
 import { ResponseDescription,
   getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, guardedStreamFrom, OkResponseDescription, RepresentationMetadata, CredentialsExtractor, ModesExtractor, PermissionReader, ensureTrailingSlash, CredentialSet, IdentifierSetMultiMap, AccessMode, ResourceIdentifier, Authorizer } from '@solid/community-server';
 import { MintRequestParser } from '../parse/MintRequestParser';
-import { MacaroonMinter } from '../../mbacsa/MbacsaMinter';
+import { MacaroonMinter } from './MbacsaMinter';
 
   export interface MacaroonMintHttpHandlerArgs {
     endpoint : string,
@@ -81,14 +81,14 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       // 2. Authenticate requestor via DPOP
       const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
       this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
-      const {requestor, requestedAccessMode} = mintRequest;
+      const {requestor, mode} = mintRequest;
       if(credentials.agent?.webId !== undefined && requestor.toString() !== credentials.agent!.webId){
         throw new Error("Invalid credentials !");
       }
       // 3. Check if requestor is authorized via WAC to access the requested resource to mint a token for
       const {resourceURI} = mintRequest;
       const requestedModes = new IdentifierSetMultiMap<AccessMode>()
-        .add({path: resourceURI.toString()},AccessMode.read);
+        .add({path: resourceURI.toString()},mode);
 
       const availablePermissions = await this.permissionReader.handleSafe({ credentials, requestedModes });
       this.logger.info(`Available permissions are ${JSON.stringify(availablePermissions)}`);

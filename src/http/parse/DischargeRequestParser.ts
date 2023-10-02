@@ -1,4 +1,4 @@
-import { Representation, getLoggerFor } from "@solid/community-server";
+import { AccessMode, Representation, getLoggerFor } from "@solid/community-server";
 import { DischargeRequest, PublicKeyDischargeRequest } from "../../types/Requests";
 import {validate} from 'jsonschema';
 
@@ -6,10 +6,11 @@ import {validate} from 'jsonschema';
 const dischargeRequestBodySchema = {
   type: "object",
   properties: {
-    serializedMacaroon: { type: "string" },
-    agentToDischarge: { type: "string" }
+    serializedRootMacaroon: { type: "string" },
+    agentToDischarge: { type: "string" },
+    mode: {type: "string", enum: [AccessMode.read, AccessMode.append, AccessMode.write, AccessMode.create, AccessMode.write]}
   },
-  required: ["serializedMacaroon", "agentToDischarge"]
+  required: ["serializedRootMacaroon", "agentToDischarge"]
 };
 
 const publicDischargeKeyRequestSchema = {

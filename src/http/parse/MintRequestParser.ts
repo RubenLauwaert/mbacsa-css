@@ -1,4 +1,4 @@
-import { getLoggerFor } from "@solid/community-server";
+import { AccessMode, getLoggerFor } from "@solid/community-server";
 import { MintRequest } from "../../types/Requests";
 import { validate } from "jsonschema";
 
@@ -8,10 +8,10 @@ const mintRequestBodySchema = {
     resourceURI: { type: "string", format: "uri" },
     requestor: { type: "string", format: "uri" },
     requestedAccessMode: {type: "string"},
-    // TODO: Add JWK scheme 
-    dischargeKey: { type: "object" }
+    dischargeKey: { type: "object" },
+    mode: {type: "string", enum: [AccessMode.read, AccessMode.append, AccessMode.write, AccessMode.create, AccessMode.write]}
   },
-  required: ["resourceURI", "requestor", "requestedAccessMode","dischargeKey"]
+  required: ["resourceURI", "requestor", "requestedAccessMode","dischargeKey", "mode"]
 };
 
 

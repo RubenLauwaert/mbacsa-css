@@ -1,7 +1,7 @@
 import { ResourceIdentifier, getLoggerFor, AccessMode } from "@solid/community-server";
 import { Macaroon, MacaroonsVerifier, TimestampCaveatVerifier } from "macaroons.js";
-import { MacaroonKeyManager } from "./MbacsaKeyManager";
-import { extractPathToPod, extractWebID } from "../util/Util";
+import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
+import { extractPathToPod, extractWebID } from "../../util/Util";
 
 export class MacaroonsAuthorizer {
 

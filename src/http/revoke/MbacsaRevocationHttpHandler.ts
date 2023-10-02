@@ -3,7 +3,7 @@ import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, Mode
 import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
 import { RevocationRequestParser } from '../parse/RevocationRequestParser';
 import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
-import { MacaroonsAuthorizer } from '../../mbacsa/MacaroonsAuthorizer';
+import { MacaroonsAuthorizer } from '../authorization/MacaroonsAuthorizer';
 import { extractPathToPod, extractPodName } from '../../util/Util';
 import { RevocationResponse } from '../../types/Responses';
 import { RevocationStore } from '../../storage/RevocationStore';

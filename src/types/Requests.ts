@@ -1,5 +1,6 @@
 import { RSA_JWK } from "pem-jwk";
 import { WebID } from "../util/Util";
+import { AccessMode } from "@solid/community-server";
 
 
 export interface MintRequest {
@@ -7,12 +8,14 @@ export interface MintRequest {
   requestor: WebID,
   requestedAccessMode: string,
   dischargeKey: RSA_JWK;
+  mode:AccessMode
 }
 
 export interface DischargeRequest {
   
-  serializedMacaroon: string,
-  agentToDischarge: WebID
+  serializedRootMacaroon: string,
+  agentToDischarge: WebID,
+  mode?:AccessMode
 }
 
 export interface PublicKeyDischargeRequest {

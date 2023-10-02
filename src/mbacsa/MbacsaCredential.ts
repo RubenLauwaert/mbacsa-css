@@ -3,7 +3,7 @@ import { WebID, extractWebID } from "../util/Util";
 import { DelegationToken } from "./DelegationToken";
 import { RevocationStatement } from "../types/RevocationStatement";
 import { AccessMode } from "@solid/community-server";
-import { MacaroonsAuthorizer } from "./MacaroonsAuthorizer";
+import { MacaroonsAuthorizer } from "../http/authorization/MacaroonsAuthorizer";
 
 export class MbacsaCredential {
 

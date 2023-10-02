@@ -1,9 +1,9 @@
-import { DischargeRequest } from "../types/Requests";
+import { DischargeRequest } from "../../types/Requests";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
-import { getLoggerFor } from "@solid/community-server";
-import { MacaroonKeyManager } from "./MbacsaKeyManager";
-import { extractPathToPod } from "../util/Util";
-import { MacaroonsExtractor } from "./MacaroonsExtractor";
+import { AccessMode, getLoggerFor } from "@solid/community-server";
+import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
+import { extractPathToPod } from "../../util/Util";
+import { MacaroonsExtractor } from "../../mbacsa/MacaroonsExtractor";
 
 
 export interface ThirdPartyCaveat {
@@ -68,20 +68,37 @@ export class MacaroonDischarger {
 
 
   public generateDischargeMacaroon(dischargeRequest:DischargeRequest): string{
-    const {serializedMacaroon, agentToDischarge} = dischargeRequest;
+    const {serializedRootMacaroon, agentToDischarge, mode} = dischargeRequest;
     // Deserialize macaroon
-    const rootMacaroon = MacaroonsDeSerializer.deserialize(serializedMacaroon);
+    const rootMacaroon = MacaroonsDeSerializer.deserialize(serializedRootMacaroon);
     // Filter Third-Party caveatPackets that have the same caveat location as this server
     const filteredCaveatPackets = this.filterThirdPartyCaveats(rootMacaroon);
     // Decrypt third-party cId with corresponding private key of generated keypair
     const {caveatKey,predicate, encryptedCaveat} = this.getDecryptedCaveatToDischarge(filteredCaveatPackets,agentToDischarge);
     // Get position in chain of delegations
     const delegationPosition = MacaroonsExtractor.retrieveDelegationPosition(rootMacaroon,encryptedCaveat);
-    // Create new discharge macaroon
-    return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
-            .add_first_party_caveat(`agent = ${agentToDischarge}`)
-            .add_first_party_caveat(`position = ${delegationPosition}`)
-            .getMacaroon().serialize();
+    // Get mode out of root macaroon and check if the delegated mode is an attenuation of the mode of the root macaroon
+    if(mode){
+      const requestedMode = AccessMode[mode as keyof typeof AccessMode];
+      const rootAccessMode = MacaroonsExtractor.extractModeFromMacaroon(rootMacaroon);
+      if(requestedMode <= rootAccessMode){
+        // Create new discharge macaroon with attenuated mode
+      return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
+      .add_first_party_caveat(`agent = ${agentToDischarge}`)
+      .add_first_party_caveat(`position = ${delegationPosition}`)
+      .add_first_party_caveat(`mode = ${mode}`)
+      .getMacaroon().serialize();
+      }else{
+        throw new Error("Unauthorized to discharge : Requested delegated access mode is not an attenuated mode of the root macaroon")
+      }
+    }else{
+      // Create new discharge macaroon without mode 
+      return new MacaroonsBuilder(this.dischargeUrl,caveatKey,encryptedCaveat)
+      .add_first_party_caveat(`agent = ${agentToDischarge}`)
+      .add_first_party_caveat(`position = ${delegationPosition}`)
+      .getMacaroon().serialize();
+    }
+
 
   }
 }
