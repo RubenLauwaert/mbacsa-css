@@ -3,6 +3,7 @@ import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, Mode
 import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 import { RevocationStore } from '../../storage/RevocationStore';
+import { extractWebID } from '../../util/Util';
 
 
 export interface AuthorizingHttpHandlerArgs {
@@ -58,17 +59,21 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const { target } = operation;
 
 
-    // Extract macaroons
+    // 1. Extract macaroons
     const serializedMacaroons = headers['macaroon'] as string;
     const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
-    // Convert macaroons to MbacsaCredential
-    const mbacsaCredential = new MbacsaCredential(macaroons);
+    // 2. Get revocation statements for corresponding root macaroon
+    const rootMacaroon = macaroons[0];
+    const issuer = extractWebID(rootMacaroon.location);
+    const rootMacaroonIdentifier = rootMacaroon.identifier;
+    const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
+    // 3. Construct MbacsaCredential 
+    const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
     // Check if credential is authorized
     const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
     if(!isCredentialAuthorized){throw new Error("Presented Mbacsa credential is not authorized !")}
     // Check if credential is revoked
-    const revocationStatements = await new RevocationStore(mbacsaCredential.getIssuer()).get(mbacsaCredential.getIdentifier());
-    const isCredentialRevoked = mbacsaCredential.isCredentialRevoked(revocationStatements);
+    const isCredentialRevoked = mbacsaCredential.isCredentialRevoked();
     if(isCredentialRevoked){throw new Error("Presented Mbacsa credential is revoked !")}
     // Check if attenuated access mode contained in mbacsa credential equals access mode of request
     const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();

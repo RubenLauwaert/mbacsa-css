@@ -4,7 +4,7 @@ import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
 import { RevocationRequestParser } from '../parse/RevocationRequestParser';
 import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
 import { MacaroonsAuthorizer } from '../authorization/MacaroonsAuthorizer';
-import { extractPathToPod, extractPodName } from '../../util/Util';
+import { extractPathToPod, extractPodName, extractWebID } from '../../util/Util';
 import { RevocationResponse } from '../../types/Responses';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { RevocationStatement } from '../../types/RevocationStatement';
@@ -68,14 +68,18 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   // 3. Extract macaroon + discharge macaroons to revoke 
   const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
   // 4. Convert macaroons to MbacsaCredential
-  const mbacsaCredential = new MbacsaCredential(macaroons);
+  const rootMacaroon = macaroons[0];
+  const issuer = extractWebID(rootMacaroon.location);
+  const rootMacaroonIdentifier = rootMacaroon.identifier;
+  const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
+  const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
   const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
   const positionRevoker = mbacsaCredential.getAgentPositionInChain(revoker);
   const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee);
   if(!positionRevoker){throw new Error("Revoker does not exist in chain of delegations of mbacsa credential !")}
   if(!positionRevokee){throw new Error("Revokee does not exist in chain of delegations of mbacsa credential !")}
   if(positionRevoker >= positionRevokee){throw new Error("Revoker is not a delegator of revokee !")}
-      // Updating revocation store 
+  // 5. Updating revocation store 
   try {
 
     const store = new RevocationStore(resourceOwner);

@@ -7,11 +7,10 @@ const mintRequestBodySchema = {
   properties: {
     resourceURI: { type: "string", format: "uri" },
     requestor: { type: "string", format: "uri" },
-    requestedAccessMode: {type: "string"},
     dischargeKey: { type: "object" },
     mode: {type: "string", enum: [AccessMode.read, AccessMode.append, AccessMode.write, AccessMode.create, AccessMode.write]}
   },
-  required: ["resourceURI", "requestor", "requestedAccessMode","dischargeKey", "mode"]
+  required: ["resourceURI", "requestor","dischargeKey", "mode"]
 };
 
 

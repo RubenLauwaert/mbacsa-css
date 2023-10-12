@@ -8,14 +8,14 @@ export interface MintRequest {
   requestor: WebID,
   requestedAccessMode: string,
   dischargeKey: RSA_JWK;
-  mode:AccessMode
+  mode:string
 }
 
 export interface DischargeRequest {
   
   serializedRootMacaroon: string,
   agentToDischarge: WebID,
-  mode?:AccessMode
+  mode?:string
 }
 
 export interface PublicKeyDischargeRequest {

@@ -88,7 +88,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       // 3. Check if requestor is authorized via WAC to access the requested resource to mint a token for
       const {resourceURI} = mintRequest;
       const requestedModes = new IdentifierSetMultiMap<AccessMode>()
-        .add({path: resourceURI.toString()},mode);
+        .add({path: resourceURI.toString()},AccessMode[mode as keyof typeof AccessMode]);
 
       const availablePermissions = await this.permissionReader.handleSafe({ credentials, requestedModes });
       this.logger.info(`Available permissions are ${JSON.stringify(availablePermissions)}`);

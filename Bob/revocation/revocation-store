@@ -154,5 +154,17 @@
       "revokee": "http://localhost:3000/Jane/profile/card#me",
       "positionRevokee": 2
     }
+  ],
+  "e03044a6-79ad-4417-bcb0-263f418eb694": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
+  ],
+  "54484d77-aa1a-4742-9ae3-821396e768f9": [
+    {
+      "revokee": "http://localhost:3000/Jane/profile/card#me",
+      "positionRevokee": 2
+    }
   ]
 }

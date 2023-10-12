@@ -12,9 +12,10 @@ export class MbacsaCredential {
   private readonly rootMacaroon:Macaroon;
   private readonly dischargeMacaroons:Macaroon[];
   private readonly attenuatedAccessMode:AccessMode;
-  private readonly delegationTokens:DelegationToken[]
+  private readonly delegationTokens:DelegationToken[];
+  private readonly revocationStatements:RevocationStatement[]
 
-  public constructor(macaroons:Macaroon[]){
+  public constructor(macaroons:Macaroon[], revocationStatements:RevocationStatement[]){
     const [rootMacaroon,...dischargeMacaroons] = macaroons;
     this.rootMacaroon = rootMacaroon;
     this.dischargeMacaroons = dischargeMacaroons;
@@ -22,6 +23,7 @@ export class MbacsaCredential {
     this.delegationTokens = dischargeMacaroons.map((dischargeMacaroon) => {
       return new DelegationToken(dischargeMacaroon);
     })
+    this.revocationStatements = revocationStatements;
     // Extract most restrictive access mode out of root macaroon and delegation tokens
     this.attenuatedAccessMode = this.extractAttenuatedAccessMode(this.rootMacaroon.caveatPackets,this.delegationTokens)
     this.chainLength = dischargeMacaroons.length;
@@ -47,12 +49,12 @@ export class MbacsaCredential {
   }
 
   // Checkers
-  public isCredentialRevoked(revocationStatements: RevocationStatement[]):boolean{
+  public isCredentialRevoked():boolean{
 
     for(let chainIndex = 0 ; chainIndex < this.delegationTokens.length ; chainIndex++){
       const delegationToken = this.delegationTokens[chainIndex];
-      for(let revocationIndex = 0; revocationIndex < revocationStatements.length ; revocationIndex++){
-        const revocationStatement = revocationStatements[revocationIndex];
+      for(let revocationIndex = 0; revocationIndex < this.revocationStatements.length ; revocationIndex++){
+        const revocationStatement = this.revocationStatements[revocationIndex];
         if(delegationToken.getDelegatee() === revocationStatement.revokee){return true;}
       }
     }
