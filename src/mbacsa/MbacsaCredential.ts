@@ -49,7 +49,7 @@ export class MbacsaCredential {
   }
 
   // Checkers
-  public isCredentialRevoked():boolean{
+  private isCredentialRevoked():boolean{
 
     for(let chainIndex = 0 ; chainIndex < this.delegationTokens.length ; chainIndex++){
       const delegationToken = this.delegationTokens[chainIndex];
@@ -64,7 +64,10 @@ export class MbacsaCredential {
 
   public isCredentialAuthorized():boolean {
     const isValid = new MacaroonsAuthorizer({path: this.target},[this.rootMacaroon,...this.dischargeMacaroons]).isValid();
-    return isValid;
+
+    const isRevoked = this.isCredentialRevoked();
+
+    return isValid && !isRevoked;
   }
 
   // Helpers

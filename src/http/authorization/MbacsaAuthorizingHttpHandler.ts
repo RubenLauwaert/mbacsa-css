@@ -69,13 +69,10 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
     // 3. Construct MbacsaCredential 
     const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
-    // Check if credential is authorized
+      // Check if credential is authorized
     const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
     if(!isCredentialAuthorized){throw new Error("Presented Mbacsa credential is not authorized !")}
-    // Check if credential is revoked
-    const isCredentialRevoked = mbacsaCredential.isCredentialRevoked();
-    if(isCredentialRevoked){throw new Error("Presented Mbacsa credential is revoked !")}
-    // Check if attenuated access mode contained in mbacsa credential equals access mode of request
+      // Check if attenuated access mode contained in mbacsa credential equals access mode of request
     const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
     const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
     const requestedAccessMode = requestedAccessMap.values().next().value;
