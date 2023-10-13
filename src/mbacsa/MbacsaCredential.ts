@@ -55,7 +55,13 @@ export class MbacsaCredential {
       const delegationToken = this.delegationTokens[chainIndex];
       for(let revocationIndex = 0; revocationIndex < this.revocationStatements.length ; revocationIndex++){
         const revocationStatement = this.revocationStatements[revocationIndex];
-        if(delegationToken.getDelegatee() === revocationStatement.revokee){return true;}
+        if(delegationToken.getDelegatee() === revocationStatement.revokee){
+          const positionDelegationToken = delegationToken.getPosition();
+          const positionRevocationStatement = revocationStatement.positionRevokee;
+          if(positionDelegationToken === positionRevocationStatement){
+            return true;
+          }
+        }
       }
     }
     return false;

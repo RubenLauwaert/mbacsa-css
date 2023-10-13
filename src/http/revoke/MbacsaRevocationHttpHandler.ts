@@ -74,6 +74,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
   const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
   const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
+  if(!isCredentialAuthorized){throw new UnauthorizedHttpError("Provided macaroon to revoke is itself not authorized")}
   const positionRevoker = mbacsaCredential.getAgentPositionInChain(revoker);
   const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee);
   if(!positionRevoker){throw new Error("Revoker does not exist in chain of delegations of mbacsa credential !")}
