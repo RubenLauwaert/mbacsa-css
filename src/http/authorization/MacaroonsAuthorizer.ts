@@ -59,7 +59,7 @@ export class MacaroonsAuthorizer {
       return true;
     });
 
-    // Verify access mode 
+    // Verify time 
     macaroonVerifier.satisfyGeneral((caveat) => {
       if(!caveat.includes("time < ")){return false;}
       const expiryTime = parseInt(caveat.replace("time < ",""));
@@ -68,7 +68,7 @@ export class MacaroonsAuthorizer {
       return false;
     });
     
-    // Verify timestamp
+    // Verify mode
     macaroonVerifier.satisfyGeneral((caveat) => {
       if(!caveat.includes(`mode = `)){return false;}
       const mode = caveat.replace("mode = ","");
