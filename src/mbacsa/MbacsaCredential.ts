@@ -74,6 +74,18 @@ export class MbacsaCredential {
     const isRevoked = this.isCredentialRevoked();
 
     return isValid && !isRevoked;
+    
+  }
+
+  public isRevokerAuthorized(revoker: WebID, revokee: WebID):boolean{
+    const positionRevoker = this.getAgentPositionInChain(revoker);
+    const positionRevokee = this.getAgentPositionInChain(revokee);
+    if(positionRevoker && positionRevokee){
+      if(positionRevoker <= positionRevokee){
+        return true;
+      }
+    }
+    return false;
   }
 
   // Helpers

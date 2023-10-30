@@ -73,17 +73,17 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const rootMacaroonIdentifier = rootMacaroon.identifier;
   const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
   const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
+  // 5. Check if credential is authorized
   const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
-  if(!isCredentialAuthorized){throw new UnauthorizedHttpError("Provided macaroon to revoke is itself not authorized")}
-  const positionRevoker = mbacsaCredential.getAgentPositionInChain(revoker);
-  const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee);
-  if(!positionRevoker){throw new Error("Revoker does not exist in chain of delegations of mbacsa credential !")}
-  if(!positionRevokee){throw new Error("Revokee does not exist in chain of delegations of mbacsa credential !")}
-  if(positionRevoker >= positionRevokee){throw new Error("Revoker is not a delegator of revokee !")}
-  // 5. Updating revocation store 
+  if(!isCredentialAuthorized){throw new UnauthorizedHttpError("Provided macaroon to revoke is itself not authorized!")}
+  // 6. Check if revoker is authorized to revoke 
+  const isRevokerAuthorized = mbacsaCredential.isRevokerAuthorized(revoker,revokee);
+  if(!isRevokerAuthorized){throw new Error("Revoker is not authorized to revoke revokee!")}
+  // 7. Updating revocation store 
   try {
 
     const store = new RevocationStore(resourceOwner);
+    const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee) as number;
     const newRevocationStatement:RevocationStatement = {revokee, positionRevokee}
     await store.insertRevocationStatement(mbacsaCredential.getIdentifier(), newRevocationStatement);
     this.logger.info("Successfully updated the revocation store for : " + resourceOwner);
