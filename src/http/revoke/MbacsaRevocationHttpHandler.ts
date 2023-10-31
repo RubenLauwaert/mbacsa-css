@@ -1,10 +1,8 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
     getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, NotImplementedHttpError, ensureTrailingSlash, JsonFileStorage , ReadWriteLocker, EqualReadWriteLocker, FileSystemResourceLocker, VoidLocker, OkResponseDescription, RepresentationMetadata, guardedStreamFrom } from '@solid/community-server';
-import { AuthorizingHttpHandlerArgs } from '@solid/community-server';
 import { RevocationRequestParser } from '../parse/RevocationRequestParser';
 import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
-import { MacaroonsAuthorizer } from '../authorization/MacaroonsAuthorizer';
-import { extractPathToPod, extractPodName, extractWebID } from '../../util/Util';
+import { extractWebID } from '../../util/Util';
 import { RevocationResponse } from '../../types/Responses';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { RevocationStatement } from '../../types/RevocationStatement';
@@ -58,7 +56,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const { target } = operation;
 
   // 1. Parse revocation request
-  const {serializedMacaroons, resourceOwner, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
+  const {serializedMacaroons, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
 
   // 2. Authenticate requestor
   const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
@@ -81,12 +79,12 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   if(!isRevokerAuthorized){throw new Error("Revoker is not authorized to revoke revokee!")}
   // 7. Updating revocation store 
   try {
-
-    const store = new RevocationStore(resourceOwner);
+    const storeOwner = mbacsaCredential.getIssuer();
+    const store = new RevocationStore(storeOwner);
     const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee) as number;
     const newRevocationStatement:RevocationStatement = {revokee, positionRevokee}
     await store.insertRevocationStatement(mbacsaCredential.getIdentifier(), newRevocationStatement);
-    this.logger.info("Successfully updated the revocation store for : " + resourceOwner);
+    this.logger.info("Successfully updated the revocation store for : " + storeOwner);
     // Send response 
     const revocationResponse:RevocationResponse = {success: true }
     return new OkResponseDescription(new RepresentationMetadata(), guardedStreamFrom(JSON.stringify(revocationResponse)));

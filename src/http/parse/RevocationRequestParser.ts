@@ -6,7 +6,6 @@ const revocationRequestBodySchema = {
   type: "object",
   properties: {
     serializedMacaroons: { type: "array" },
-    resourceOwner: {type: "string"},
     revoker: {type: "string"},
     revokee: {type: "string"}
   },
