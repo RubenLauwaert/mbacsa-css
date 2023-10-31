@@ -81,7 +81,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   try {
     const storeOwner = mbacsaCredential.getIssuer();
     const store = new RevocationStore(storeOwner);
-    const positionRevokee = mbacsaCredential.getAgentPositionInChain(revokee) as number;
+    const positionRevokee = mbacsaCredential.getChainLength() + 1;
     const newRevocationStatement:RevocationStatement = {revokee, positionRevokee}
     await store.insertRevocationStatement(mbacsaCredential.getIdentifier(), newRevocationStatement);
     this.logger.info("Successfully updated the revocation store for : " + storeOwner);

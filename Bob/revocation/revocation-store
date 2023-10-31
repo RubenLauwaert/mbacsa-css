@@ -1,14 +1,3 @@
 {
-  "b7536915-ee90-43f9-a0a8-0611af5753de": [
-    {
-      "revokee": "http://localhost:3000/Jane/profile/card#me",
-      "positionRevokee": 2
-    }
-  ],
-  "a3e7d6bb-1a28-4c78-a83a-a3eaa3f40d75": [
-    {
-      "revokee": "http://localhost:3000/Jane/profile/card#me",
-      "positionRevokee": 2
-    }
-  ]
+
 }

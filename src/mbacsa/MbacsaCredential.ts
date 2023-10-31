@@ -78,14 +78,13 @@ export class MbacsaCredential {
   }
 
   public isRevokerAuthorized(revoker: WebID, revokee: WebID):boolean{
-    const positionRevoker = this.getAgentPositionInChain(revoker);
-    const positionRevokee = this.getAgentPositionInChain(revokee);
-    if(positionRevoker && positionRevokee){
-      if(positionRevoker <= positionRevokee){
-        return true;
-      }
-    }
-    return false;
+    // Check if revoker is last in delegation chain
+    const agentLastInChain = this.getAgentLastInChain();
+    if(agentLastInChain != revoker){return false;}
+    // Check if revokee is not present in delegation chain
+    const revokeePosition = this.getAgentPositionInChain(revokee);
+    if(revokeePosition){return false;}
+    return true;
   }
 
   // Helpers
