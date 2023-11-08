@@ -78,6 +78,9 @@ export class MacaroonsAuthorizer {
     
     // Third-Party caveats verifier
     this.dischargeMacaroons.forEach((dischargeMacaroon,index) =>{
+
+      macaroonVerifier.satisfy3rdParty(dischargeMacaroon);
+
       const delegationPosition = index + 1;
       // Check if every discharge macaroon has discharged agent caveat
       macaroonVerifier.satisfyGeneral((caveat) => {
@@ -89,13 +92,18 @@ export class MacaroonsAuthorizer {
         if(!caveat.includes(`position = ${delegationPosition}`)){return false;}
         else{return true;}
       })
-      macaroonVerifier.satisfy3rdParty(dischargeMacaroon);
+
     })
     
 
     // Perform validation of macaroon
     const rootOfIssuer =  extractPathToPod(this.target.path);
     const rootSecretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
+    try {
+      const assertIsValid = macaroonVerifier.assertIsValid(rootSecretKey);
+    } catch (error) {
+      this.logger.info(error as string)
+    }
     const isValid = macaroonVerifier.isValid(rootSecretKey);
     return isValid; 
   }
