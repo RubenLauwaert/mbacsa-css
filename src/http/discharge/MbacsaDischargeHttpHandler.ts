@@ -63,7 +63,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   const {target, body,} = input.operation;
   if(target.path.endsWith('/key')){
     if(DischargeRequestParser.isRequestBodyReadable(body)){
-      // 1. Parse body of request
+      const startTime = process.hrtime();      // 1. Parse body of request
       const requestBody = body.data.read();
       const {subjectToRetrieveKeyFrom} = DischargeRequestParser.parsePublicKeyRequest(requestBody);
       // 2. Retrieve public discharge key from pod of subject to retrieve from
@@ -73,6 +73,9 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       // 3. Construct response
       const publicDischargeKeyResponse:PublicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
       const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
+      const endTime = process.hrtime(startTime);
+      const elapsedTimeMicroseconds = endTime[0] * 1e6 + endTime[1] / 1e3;
+      this.logger.info(`It took ${elapsedTimeMicroseconds} microseconds to retrieve discharge key !`)
       this.logger.info("Successfully shared public discharge key of : " + subjectToRetrieveKeyFrom);
       return new OkResponseDescription(new RepresentationMetadata(),responseData);
     }else{

@@ -1,0 +1,9 @@
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+<#bob>
+    a acl:Authorization;
+    acl:agent <http://localhost:3000/Bob/profile/card#me>;
+    acl:accessTo <./post1.json>;
+    acl:mode
+        acl:Read.

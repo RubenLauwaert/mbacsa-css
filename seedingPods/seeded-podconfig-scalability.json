@@ -1,0 +1,47 @@
+[
+  {
+    "podName": "Alice",
+    "email": "Alice@example.com",
+    "password": "Alice"
+  },
+  {
+    "podName": "Bob",
+    "email": "Bob@example.com",
+    "password": "Bob"
+  },
+  {
+    "podName": "Charlie",
+    "email": "Charlie@example.com",
+    "password": "Charlie"
+  },
+  {
+    "podName": "Dave",
+    "email": "Dave@example.com",
+    "password": "Dave"
+  },
+  {
+    "podName": "Eve",
+    "email": "Eve@example.com",
+    "password": "Eve"
+  },
+  {
+    "podName": "Frank",
+    "email": "Frank@example.com",
+    "password": "Frank"
+  },
+  {
+    "podName": "Grace",
+    "email": "Grace@example.com",
+    "password": "Grace"
+  },
+  {
+    "podName": "Hank",
+    "email": "Hank@example.com",
+    "password": "Hank"
+  },
+  {
+    "podName": "John",
+    "email": "John@example.com",
+    "password": "John"
+  }
+]

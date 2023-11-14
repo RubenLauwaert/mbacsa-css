@@ -75,6 +75,7 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
   if(operation.body.data.readable){
     const requestData = operation.body.data.read();
     try {
+      const startTime = process.hrtime();
       // 1.  Parse body of request and check if it is structurally correct
       const mintRequest = MintRequestParser.parseMintRequest(requestData);
 
@@ -107,6 +108,12 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
       const responseData = guardedStreamFrom(JSON.stringify({mintedMacaroon: mintedMacaroon}));
       const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
       this.logger.info("Minted macaroon for : " + requestor);
+      const endTime = process.hrtime(startTime);
+      const elapsedTimeMicroseconds = endTime[0] * 1e6 + endTime[1] / 1e3;
+      this.logger.info(`It took ${elapsedTimeMicroseconds} microseconds for the minting operation`)
+
+   
+
       return response;
 
     } catch (error) {
