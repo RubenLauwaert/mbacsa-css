@@ -87,9 +87,10 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
     // 2. Authenticate agent to discharge via DPoP 
     const credentials = await this.credentialsExtractor.handleSafe(input.request)
     const authenticatedAgent = credentials.agent?.webId
-    const { agentToDischarge } = dischargeRequest;
+    const { thirdPartyCaveatIdentifier, agentToDischarge } = dischargeRequest;
     if(authenticatedAgent !== agentToDischarge){throw new Error("The authenticated agent is not equal to the agent that requests a discharge !")}
-    const serializedDischargeMacaroon = new MacaroonDischarger(this.baseDischargeUrl).generateDischargeMacaroon(dischargeRequest);
+    // 3. Generate Discharge Macaroon
+    const serializedDischargeMacaroon = MacaroonDischarger.generateDischargeMacaroon(thirdPartyCaveatIdentifier,agentToDischarge,this.baseDischargeUrl);
     const responseData = guardedStreamFrom(JSON.stringify({dischargeMacaroon: serializedDischargeMacaroon}));
     const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
     this.logger.info("Successfully generated a delegation token (discharge macaroon) for " + dischargeRequest.agentToDischarge)

@@ -21,6 +21,7 @@ export class MacaroonMinter {
     const location = resourceURI;
     const identifier = uuidv4();
     const issuer = extractWebID(resourceURI);
+    const positionIssuer = 1;
     const rootOfIssuer = extractPathToPod(resourceURI);
     const secretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
     // Add issuer to root macaroon as first-party caveat
@@ -39,8 +40,11 @@ export class MacaroonMinter {
     // - Add third-party caveat, used for discharging the requestor (proof of identity)
     const dischargeLocation = ensureTrailingSlash(new URL(requestor).origin) + ".macaroon/discharge";
     const caveatKey = uuidv4();
-    const predicate = `agent = ${requestor}`;
-    const tpCaveatId = caveatKey + "::" + predicate;
+    const agentPredicate = `agent = ${requestor}`;
+    const modePredicate  = `mode = ${mode}`;
+    const positionPredicate = `position = ${positionIssuer}`
+    const tpCaveatId = caveatKey + "::" + agentPredicate + "::" + modePredicate
+        + "::" + positionPredicate;
     // -- Encrypt third-party caveatId with given discharge key (public key of requestor)
     const rsa = new NodeRSA();
     const publicDischargeKeyPem = jwk2pem(dischargeKey);

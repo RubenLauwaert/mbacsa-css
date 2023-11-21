@@ -2,7 +2,7 @@ import { DischargeRequest } from "../../types/Requests";
 import {CaveatPacket, CaveatPacketType, Macaroon, MacaroonsBuilder, MacaroonsDeSerializer } from "macaroons.js";
 import { AccessMode, getLoggerFor } from "@solid/community-server";
 import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
-import { extractPathToPod } from "../../util/Util";
+import { WebID, extractPathToPod } from "../../util/Util";
 import { MacaroonsExtractor } from "../../mbacsa/MacaroonsExtractor";
 
 
@@ -70,7 +70,7 @@ export class MacaroonDischarger {
   public generateDischargeMacaroon(dischargeRequest:DischargeRequest): string{
     const {serializedRootMacaroon, agentToDischarge, mode} = dischargeRequest;
     // Deserialize macaroon
-    const rootMacaroon = MacaroonsDeSerializer.deserialize(serializedRootMacaroon);
+    const rootMacaroon = MacaroonsDeSerializer.deserialize(serializedRootMacaroon as string);
     // Filter Third-Party caveatPackets that have the same caveat location as this server
     const filteredCaveatPackets = this.filterThirdPartyCaveats(rootMacaroon);
     // Decrypt third-party cId with corresponding private key of generated keypair
@@ -101,4 +101,24 @@ export class MacaroonDischarger {
 
 
   }
+
+  public static generateDischargeMacaroon(thirdPartyCaveatIdentifier:string, dischargee: WebID, dischargeURI:string){
+
+    const pathToPodOfAgentToDischarge  = extractPathToPod(dischargee);
+    const macaroonKeyManager = new MacaroonKeyManager(pathToPodOfAgentToDischarge);
+
+    // Try to decrypt third-party caveat identifier
+    try {
+      const decryptedCaveatId = macaroonKeyManager.decryptCaveatIdentifier(thirdPartyCaveatIdentifier);
+      const [caveatKey, agentPredicate, modePredicate, positionPredicate] = decryptedCaveatId.split("::");
+      return new MacaroonsBuilder(dischargeURI,caveatKey,thirdPartyCaveatIdentifier)
+        .add_first_party_caveat(agentPredicate)
+        .add_first_party_caveat(positionPredicate)
+        .add_first_party_caveat(modePredicate)
+        .getMacaroon().serialize()
+    } catch (error) {
+      throw new Error("Could not decrypt third-party caveat !");
+    }
+  }
+
 }

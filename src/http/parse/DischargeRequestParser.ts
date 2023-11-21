@@ -6,11 +6,9 @@ import {validate} from 'jsonschema';
 const dischargeRequestBodySchema = {
   type: "object",
   properties: {
-    serializedRootMacaroon: { type: "string" },
-    agentToDischarge: { type: "string" },
-    mode: {type: "string", enum: [AccessMode.read, AccessMode.append, AccessMode.write, AccessMode.create, AccessMode.write]}
-  },
-  required: ["serializedRootMacaroon", "agentToDischarge"]
+    thirdPartyCaveatIdentifier: { type: "string" },
+    agentToDischarge: { type: "string" },  },
+  required: ["thirdPartyCaveatIdentifier", "agentToDischarge"]
 };
 
 const publicDischargeKeyRequestSchema = {

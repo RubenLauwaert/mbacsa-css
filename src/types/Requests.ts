@@ -13,8 +13,9 @@ export interface MintRequest {
 
 export interface DischargeRequest {
   
-  serializedRootMacaroon: string,
+  thirdPartyCaveatIdentifier: string,
   agentToDischarge: WebID,
+  serializedRootMacaroon?:string,
   mode?:string
 }
 
