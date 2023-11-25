@@ -57,27 +57,21 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
 
   // 1. Parse revocation request
   const {serializedMacaroons, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
-
-  // 2. Authenticate requestor
-  const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
-  const authenticatedAgent = credentials.agent?.webId;
-    // Check if authenticated agent is equal to revoker
-  if(authenticatedAgent !== revoker){throw new Error("Revoker does not match authenticated agent !")};
-  // 3. Extract macaroon + discharge macaroons to revoke 
+  // 2. Extract macaroon + discharge macaroons to revoke 
   const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
-  // 4. Convert macaroons to MbacsaCredential
+  // 3. Convert macaroons to MbacsaCredential
   const rootMacaroon = macaroons[0];
   const issuer = extractWebID(rootMacaroon.location);
   const rootMacaroonIdentifier = rootMacaroon.identifier;
   const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
   const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
-  // 5. Check if credential is authorized
+  // 4. Check if credential is authorized
   const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
   if(!isCredentialAuthorized){throw new UnauthorizedHttpError("Provided macaroon to revoke is itself not authorized!")}
-  // 6. Check if revoker is authorized to revoke 
+  // 5. Check if revoker is authorized to revoke 
   const isRevokerAuthorized = mbacsaCredential.isRevokerAuthorized(revoker,revokee);
   if(!isRevokerAuthorized){throw new Error("Revoker is not authorized to revoke revokee!")}
-  // 7. Updating revocation store 
+  // 6. Updating revocation store 
   try {
     const storeOwner = mbacsaCredential.getIssuer();
     const store = new RevocationStore(storeOwner);

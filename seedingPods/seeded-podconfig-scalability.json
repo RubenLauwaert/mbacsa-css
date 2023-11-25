@@ -43,5 +43,21 @@
     "podName": "John",
     "email": "John@example.com",
     "password": "John"
+  },
+  {
+    "podName": "Kate",
+    "email": "Kate@example.com",
+    "password": "Kate"
+  },
+  {
+    "podName": "Liam",
+    "email": "Liam@example.com",
+    "password": "Liam"
+  },
+  {
+    "podName": "Mia",
+    "email": "Mia@example.com",
+    "password": "Mia"
   }
 ]
+
