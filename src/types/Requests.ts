@@ -23,6 +23,11 @@ export interface PublicKeyDischargeRequest {
   subjectToRetrieveKeyFrom: WebID
 }
 
+export interface MbacsaAuthorizationRequest {
+  serializedDischargeMacaroons: Array<string>,
+  body?: any
+}
+
 export interface RevocationRequest {
 
   serializedMacaroons: Array<string>,

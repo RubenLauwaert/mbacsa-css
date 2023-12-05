@@ -36,6 +36,7 @@ export class MbacsaCredential {
   public getIssuer():WebID{return extractWebID(this.target)};
   public getChainLength():number{return this.chainLength;};
   public getAttenuatedAccessMode():AccessMode{return this.attenuatedAccessMode}
+  public getHTTPMethod():string{return this.mapAccessModeToHttpMethod(this.attenuatedAccessMode)}
   public getAgentLastInChain():WebID{return this.delegationTokens[this.delegationTokens.length - 1].getDelegatee();}
   public getAgentPositionInChain(agent: WebID):number|undefined{
     let position;
@@ -103,6 +104,23 @@ export class MbacsaCredential {
     if(attenuatedModes.length > 0){return attenuatedModes[attenuatedModes.length - 1] as AccessMode}
     else{return rootMode;}
   }
+
+  private mapAccessModeToHttpMethod(accessMode: AccessMode): string {
+    switch (accessMode) {
+        case AccessMode.read:
+            return "GET"; // 'read' typically corresponds to GET in HTTP
+        case AccessMode.append:
+            return "POST"; // 'append' might correspond to POST, as it's often used to add new data
+        case AccessMode.write:
+            return "PUT"; // 'write' could correspond to PUT, as it's often used for updating existing data
+        case AccessMode.create:
+            return "POST"; // 'create' can also be mapped to POST, commonly used to create new resources
+        case AccessMode.delete:
+            return "DELETE"; // 'delete' directly corresponds to the DELETE method in HTTP
+        default:
+            throw new Error("Invalid access mode");
+    }
+}
 
 
 

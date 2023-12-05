@@ -1,10 +1,12 @@
 import { CredentialSet, CredentialsExtractor, Authorizer, PermissionReader, ModesExtractor, ResponseDescription,
-      getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError } from '@solid/community-server';
+      getLoggerFor, OperationHttpHandlerInput, OperationHttpHandler, UnauthorizedHttpError, BasicRepresentation, guardedStreamFrom } from '@solid/community-server';
 import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { extractWebID } from '../../util/Util';
 import { MacaroonsDeSerializer } from 'macaroons.js';
+import { AuthorizationRequestParser } from '../parse/AuthorizationRequestParser';
+import { Readable } from 'readable-stream';
 
 
 export interface AuthorizingHttpHandlerArgs {
@@ -57,13 +59,17 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
   public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
     const { request, operation } = input;
     const { headers } = request;
-    const { target } = operation;
-
-    
+    const { body, method } = operation;
+ 
+    // First check
+    if(method !== 'POST'){throw new Error("A request authorized via MBACSA should always be a POST request !")}
+    // Parse request body
+    const parsedRequestBody = AuthorizationRequestParser.parseMbacsaAuthorizationRequest(body);
+    if(!parsedRequestBody){throw new Error("Request body for authorizing request via MBACSA could not be parsed !")}
+    const {serializedDischargeMacaroons } = parsedRequestBody;
     // 1. Extract macaroons
-    const startAuthorizingTime = process.hrtime();
-    const serializedMacaroons = headers['macaroon'] as string;
-    const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
+    const serializedRootMacaroon = headers['macaroon'] as string;
+    const macaroons = MacaroonsExtractor.extractMacaroons([serializedRootMacaroon,...serializedDischargeMacaroons].toString());
     this.logger.info(macaroons[macaroons.length - 1].inspect());
     // 2. Get revocation statements for corresponding root macaroon
     const rootMacaroon = macaroons[0];
@@ -78,16 +84,20 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
       this.logger.info("Could not authorize agent: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength());
       throw new Error("Presented Mbacsa credential is not authorized !")}
       // Check if attenuated access mode contained in mbacsa credential equals access mode of request
-    const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
-    const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
-    const requestedAccessMode = requestedAccessMap.values().next().value;
-    if(attenuatedMode !== requestedAccessMode){
-      this.logger.info("Could not authorize agent: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength());
-      throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
-    const endAuthorizingTime = process.hrtime(startAuthorizingTime);
-    const elapsedAuthorizingTime = endAuthorizingTime[0] * 1e6 + endAuthorizingTime[1] / 1e3;
+    // const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
+    // const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
+    // const requestedAccessMode = requestedAccessMap.values().next().value;
+    // if(attenuatedMode !== requestedAccessMode){
+    //   this.logger.info("Could not authorize agent: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength());
+    //   throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
+    
+    input.operation.method = mbacsaCredential.getHTTPMethod();
+    if(parsedRequestBody.body){
+      const requestData = guardedStreamFrom(parsedRequestBody.body)
+      input.operation.body.data = requestData;
+    }
+    
     this.logger.info("Succesfully authorized: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength())
-    this.logger.info("Elapsed internal authorization time: " + elapsedAuthorizingTime + "microseconds")
     return this.operationHandler.handleSafe(input);
   }
 }
