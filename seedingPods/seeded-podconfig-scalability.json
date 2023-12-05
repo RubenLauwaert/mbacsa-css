@@ -58,6 +58,52 @@
     "podName": "Mia",
     "email": "Mia@example.com",
     "password": "Mia"
+  },
+  {
+    "podName": "Nathan",
+    "email": "Nathan@example.com",
+    "password": "Nathan"
+  },
+  {
+    "podName": "Olivia",
+    "email": "Olivia@example.com",
+    "password": "Olivia"
+  },
+  {
+    "podName": "Peter",
+    "email": "Peter@example.com",
+    "password": "Peter"
+  },
+  {
+    "podName": "Quinn",
+    "email": "Quinn@example.com",
+    "password": "Quinn"
+  },
+  {
+    "podName": "Rachel",
+    "email": "Rachel@example.com",
+    "password": "Rachel"
+  },
+  {
+    "podName": "Sam",
+    "email": "Sam@example.com",
+    "password": "Sam"
+  },
+  {
+    "podName": "Taylor",
+    "email": "Taylor@example.com",
+    "password": "Taylor"
+  },
+  {
+    "podName": "Uriel",
+    "email": "Uriel@example.com",
+    "password": "Uriel"
+  },
+  {
+    "podName": "Violet",
+    "email": "Violet@example.com",
+    "password": "Violet"
   }
 ]
+
 

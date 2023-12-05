@@ -4,6 +4,7 @@ import { MacaroonsExtractor } from '../../mbacsa/MacaroonsExtractor';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 import { RevocationStore } from '../../storage/RevocationStore';
 import { extractWebID } from '../../util/Util';
+import { MacaroonsDeSerializer } from 'macaroons.js';
 
 
 export interface AuthorizingHttpHandlerArgs {
@@ -58,10 +59,12 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const { headers } = request;
     const { target } = operation;
 
-
+    
     // 1. Extract macaroons
+    const startAuthorizingTime = process.hrtime();
     const serializedMacaroons = headers['macaroon'] as string;
     const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons);
+    this.logger.info(macaroons[macaroons.length - 1].inspect());
     // 2. Get revocation statements for corresponding root macaroon
     const rootMacaroon = macaroons[0];
     const issuer = extractWebID(rootMacaroon.location);
@@ -71,14 +74,20 @@ export class MacaroonAuthorizingHttpHandler extends OperationHttpHandler {
     const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
       // Check if credential is authorized
     const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
-    if(!isCredentialAuthorized){throw new Error("Presented Mbacsa credential is not authorized !")}
+    if(!isCredentialAuthorized){
+      this.logger.info("Could not authorize agent: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength());
+      throw new Error("Presented Mbacsa credential is not authorized !")}
       // Check if attenuated access mode contained in mbacsa credential equals access mode of request
     const attenuatedMode = mbacsaCredential.getAttenuatedAccessMode();
     const requestedAccessMap = await this.modesExtractor.handleSafe(operation);
     const requestedAccessMode = requestedAccessMap.values().next().value;
-    this.logger.info(requestedAccessMode);
-    if(attenuatedMode !== requestedAccessMode){throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
-    
+    if(attenuatedMode !== requestedAccessMode){
+      this.logger.info("Could not authorize agent: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength());
+      throw new Error("Access mode from mbacsa credential does not match requested access mode !")};
+    const endAuthorizingTime = process.hrtime(startAuthorizingTime);
+    const elapsedAuthorizingTime = endAuthorizingTime[0] * 1e6 + endAuthorizingTime[1] / 1e3;
+    this.logger.info("Succesfully authorized: " + mbacsaCredential.getAgentLastInChain() + " at position: " + mbacsaCredential.getChainLength())
+    this.logger.info("Elapsed internal authorization time: " + elapsedAuthorizingTime + "microseconds")
     return this.operationHandler.handleSafe(input);
   }
 }
