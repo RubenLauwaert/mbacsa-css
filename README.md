@@ -1,14 +1,39 @@
-# Template to inject components in Community Solid Server as Package
+# MBACSA: Macaroon Based Authorization Configuration for Solid Applications
 
-This is what worked for me, although it's possible that I'm overcomplicating things.
+This repository introduces an implementation of the MBACSA middleware 
+for the Community Solid Server.
 
-## How to use
+## About
 
-- Replace all occurences of `example-module` by your module name.
-- `npm install`
-- `npm run build` to build.
-- `npm run start` to start, using the configuration in `config/default.json`. This is where you adjust the configuration. It worked for me when splitting up CSS and my own config files (`default.json` is in my own context, and imports `css.json`, which is in the CSS context. The latter then references other CSS config files using `css:` and then the config). `css.json` is CSS's `default.json`, but with `"css:config/storage/backend/memory.json"` removed, as that is the component I'm replacing with the custom `InMemoryAccessor.ts`. Make sure to add this back in if you're not replacing the `DataAccessor`. It's best to start with one of CSS's configs, like `config/default.json` or `config/file.json` from CSS's github, and then remove whatever you're replacing.
-- CSS exports all classes used by Component.js (referenced in config files) in its `index.ts`, so I'm doing this as well. I'm not sure if it is necessary, but it works.
-- As a test, this template injects a new `DataAccessor`, for which the code was copied.
+MBACSA is a middleware for the Community Solid Server and allows Solid agents
+to `mint`, `discharge`, `revoke` and `authorize` macaroons for resources, stored in the agent's pod. These newly minted macaroons represent access tokens for specific resources and access modes. Solid agents are enabled to delegate these permissions in a transitive manner to each other by adding third-party caveats. You are free to use the [MBACSA Client](https://github.com/RubenLauwaert/mbacsa-client) for this. Finally, agents can make access requests via these attenuated macaroons, which the middleware will authorize by verifying the provided macaroons. Minting, discharging, delegating and making authorized requests can all be done through the [MBACSA Client](https://github.com/RubenLauwaert/mbacsa-client).
 
-Extra tip: You can add more CLI arguments by looking at what CSS does in `config/http/server-factory/https-websockets.json`.
+
+## Running the CSS
+
+In order to run the CSS, you first need to install all the dependencies via the following command:
+
+`npm install`
+
+After you installed all the dependencies, you are given three options to run the adapted CSS.
+
+### Option 1
+This option starts the server without initializing any pods:
+
+`npm run build && npm run start`
+
+### Option 2
+
+This option starts the server and seeds the pods for Alice, Bob and Jane:
+
+`npm run build && npm run start -- --seededPodConfigJson ./seedingPods/demo.json`
+
+
+### Option 3
+
+This option starts the server and initializes 20 different pods. This option should be used for running the [MBACSA Experiments](https://github.com/RubenLauwaert/mbacsa-experiments). Initializing the pods can take a while (1-2min.)
+
+`npm run build && npm run start -- --seededPodConfigJson ./seedingPods/experiments.json`
+
+
+

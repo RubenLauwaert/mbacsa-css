@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import NodeRSA from 'node-rsa';
 import { getLoggerFor } from '@solid/community-server';
-import { extractPathToPod, extractPodName } from '../util/Util';
+import { extractPodName } from '../util/Util';
 
 const REL_DISCHARGE_KEY_FOLDER_PATH = '/keys/discharge/';
 const REL_MINT_KEY_FOLDER_PATH = '/keys/mint/';
