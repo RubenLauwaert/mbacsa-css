@@ -17,6 +17,11 @@ export interface MacaroonKeyManagerI {
 }
 
 
+
+/**
+ * Manages keys for macaroon operations, including encryption/decryption of 
+ * third-party caveat identifiers and retrieval of secret keys.
+ */
 export class MacaroonKeyManager implements MacaroonKeyManagerI {
   
   private readonly logger = getLoggerFor(this);
@@ -26,19 +31,34 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     this.pathToRootOfPod = pathToRootOfPod;
   }
 
-
+  /**
+   * Retrieves the public discharge key for a given pod.
+   * @returns The public discharge key as a string.
+   */
   public getPublicDischargeKey():string{
     const podName = extractPodName(this.pathToRootOfPod);
     const pathToPublicDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'public.key'
     return fs.readFileSync(pathToPublicDischargeKey).toString();
   }
 
+  /**
+   * Retrieves the private discharge key for a given pod.
+   * This key is used for decrypting encrypted caveat identifiers.
+   * @returns The private discharge key as a string.
+   * @throws An error if reading the key file fails.
+   */
   private getPrivateDischargeKey():string{
     const podName = extractPodName(this.pathToRootOfPod);
     const pathToPrivateDischargeKey = process.cwd() + '/' + podName +  REL_DISCHARGE_KEY_FOLDER_PATH + 'private.key'
     return fs.readFileSync(pathToPrivateDischargeKey).toString();
   }
 
+  /**
+   * Encrypts a caveat identifier using the public discharge key.
+   * @param cId The caveat identifier to encrypt.
+   * @returns The encrypted caveat identifier.
+   * @throws An error if encryption fails.
+   */
   public encryptCaveatIdentifier(cId: string):string{
     try {
       const publicKey = this.getPublicDischargeKey();
@@ -50,6 +70,12 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   };
 
+  /**
+   * Decrypts an encrypted caveat identifier using the private discharge key.
+   * @param encrypted_cId The encrypted caveat identifier to decrypt.
+   * @returns The decrypted caveat identifier.
+   * @throws An error if decryption fails.
+   */
   public decryptCaveatIdentifier(encrypted_cId:string):string{
     try {
       const privateKey = this.getPrivateDischargeKey();
@@ -62,6 +88,12 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
   }
 
+
+  /**
+   * Retrieves the secret root key for macaroon minting.
+   * @returns The secret root key as a string.
+   * @throws An error if retrieving the key fails.
+   */
   public getSecretRootKey():string{
     try {
       const podName = extractPodName(this.pathToRootOfPod);
@@ -72,7 +104,4 @@ export class MacaroonKeyManager implements MacaroonKeyManagerI {
     }
     
   }
-
- 
-
 }

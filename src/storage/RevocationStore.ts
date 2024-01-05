@@ -5,7 +5,9 @@ import { RevocationStatement } from "../types/RevocationStatement";
 
 const REVOCATION_FILE_PATH = '/revocation/revocation-store'
 
-
+/**
+ * Manages the storage and retrieval of revocation statements for macaroons in a JSON file.
+ */
 export class RevocationStore implements KeyValueStorage<string,RevocationStatement[]> {
 
   private readonly logger = getLoggerFor(this);
@@ -13,6 +15,11 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
   private readonly locker;
   private readonly lockIdentifier;
 
+
+  /**
+   * Constructs a RevocationStore.
+   * @param storeOwner The WebID of the store owner.
+   */
   public constructor(storeOwner: WebID){
     const pathToPodOfStoreOwner = extractPathToPod(storeOwner);
     this.filePath = extractPodName(pathToPodOfStoreOwner) + REVOCATION_FILE_PATH;
@@ -20,6 +27,11 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     this.lockIdentifier = { path: this.filePath };
   }
 
+  /**
+   * Retrieves the revocation statements associated with the given macaroon identifier.
+   * @param key The macaroon identifier for which to retrieve revocation statements.
+   * @returns A promise resolving to an array of RevocationStatements.
+   */
   public async get(key: string): Promise<RevocationStatement[]> {
     let revocationStatements:RevocationStatement[] = [];
     const json = await this.getJsonSafely();
@@ -29,11 +41,22 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     return revocationStatements;
   }
 
+  /**
+   * Checks whether the store contains revocation statements for the specified macaroon identifier.
+   * @param key The macaroon identifier to check in the store.
+   * @returns A promise resolving to a boolean indicating existence.
+   */
   public async has(key: string): Promise<boolean> {
     const json = await this.getJsonSafely();
     return typeof json[key] !== 'undefined';
   }
 
+  /**
+   * Sets the revocation statements for the specified macaroon identifier.
+   * @param key The macaroon identifier for which to set revocation statements.
+   * @param value The revocation statements to set.
+   * @returns The instance of the RevocationStore.
+   */
   public async set(key: string, value: RevocationStatement[]): Promise<this> {
     return this.updateJsonSafely((json: NodeJS.Dict<unknown>): this => {
       json[key] = value;
@@ -41,6 +64,12 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     });
   }
 
+  /**
+   * Inserts a single revocation statement for the specified macaroon identifier.
+   * @param key The macaroon identifier for which to insert a revocation statement.
+   * @param revocationStatement The revocation statement to insert.
+   * @returns The instance of the RevocationStore.
+   */
   public async insertRevocationStatement(key: string, revocationStatement: RevocationStatement):Promise<this>{
     return this.updateJsonSafely((json: NodeJS.Dict<unknown>): this => {
       const oldStatements = json[key] as RevocationStatement[];
@@ -55,6 +84,11 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     })
   }
 
+  /**
+   * Deletes the revocation statements associated with the specified macaroon identifier.
+   * @param key The macaroon identifier for which to delete revocation statements.
+   * @returns A promise resolving to a boolean indicating success or failure.
+   */
   public async delete(key: string): Promise<boolean> {
     return this.updateJsonSafely((json: NodeJS.Dict<unknown>): boolean => {
       if (typeof json[key] !== 'undefined') {
@@ -66,6 +100,10 @@ export class RevocationStore implements KeyValueStorage<string,RevocationStateme
     });
   }
 
+   /**
+   * Provides an async iterator over all entries in the revocation store.
+   * @returns An async iterable iterator of key-value pairs.
+   */
   public async* entries(): AsyncIterableIterator<[ string, RevocationStatement[] ]> {
     const json = await this.getJsonSafely();
     const entries = Object.entries(json);

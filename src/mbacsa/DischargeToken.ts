@@ -2,12 +2,25 @@ import { AccessMode } from "@solid/community-server";
 import { Macaroon } from "macaroons.js";
 import { WebID } from "../util/Util";
 
-export class DelegationToken {
+
+/**
+ * Represents a discharge token, derived from a discharge macaroon.
+ * The discharge token encapsulates the delegatee's WebID, the position in the delegation chain,
+ * and an optional attenuated access mode. Makes it easier to parse information from 
+ * the discharge macaroons
+ */
+export class DischargeToken {
 
   private readonly delegatee:WebID;
   private readonly position:number;
   private readonly attenuatedMode?:AccessMode;
 
+
+  /**
+   * Constructs a DischargeToken from a discharge macaroon.
+   * @param dischargeMacaroon The discharge macaroon from which to extract token information.
+   * @throws An error if the discharge macaroon has less than two caveats.
+   */
   public constructor(dischargeMacaroon:Macaroon){
     const caveats = dischargeMacaroon.caveatPackets.map((caveatPacket) => {
       return caveatPacket.getValueAsText()
@@ -23,10 +36,12 @@ export class DelegationToken {
     }
   }
 
-  // Getters
+  // Getters for discharge token properties
 
   public getDelegatee():WebID{return this.delegatee;}
+
   public getPosition():number{return this.position;}
+  
   public getAttenuatedMode():AccessMode|undefined{return this.attenuatedMode;}
 
 

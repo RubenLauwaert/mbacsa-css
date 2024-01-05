@@ -3,6 +3,9 @@ import { ResponseDescription,
 import { MintRequestParser } from '../parse/MintRequestParser';
 import { MacaroonMinter } from './MbacsaMinter';
 
+  /**
+   * Interface for the constructor arguments of MacaroonMintHttpHandler.
+   */
   export interface MacaroonMintHttpHandlerArgs {
     endpoint : string,
     baseUrl : string,
@@ -24,6 +27,11 @@ import { MacaroonMinter } from './MbacsaMinter';
     authorizer: Authorizer;
   }
 
+/**
+ * MacaroonMintHttpHandler is responsible for handling HTTP requests for minting macaroons.
+ * It extends OperationHttpHandler and includes methods for determining if a request can be handled
+ * and for processing the request to mint a macaroon.
+ */
 export class MacaroonMintHttpHandler extends OperationHttpHandler {
 private readonly logger = getLoggerFor(this);
 private readonly credentialsExtractor: CredentialsExtractor;
@@ -34,6 +42,13 @@ private readonly baseUrl : string;
 private readonly endpoint : string;
 private readonly mintUrl : string;
 
+
+/**
+ * Constructs a new instance of MacaroonMintHttpHandler.
+ * 
+ * @param args - Arguments including the base URL, endpoint, credentials extractor,
+ *               modes extractor, permission reader, and authorizer.
+ */
 public constructor(args: MacaroonMintHttpHandlerArgs) {
   super();
   this.baseUrl = ensureTrailingSlash(args.baseUrl);
@@ -45,48 +60,44 @@ public constructor(args: MacaroonMintHttpHandlerArgs) {
   this.mintUrl = this.baseUrl + this.endpoint;
 }
 
+
+/**
+ * Determines if the incoming request can be handled by this handler.
+ * 
+ * @param input - The input containing the operation details and request.
+ * @throws Throws an error if the request does not target the mint URL.
+  */
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
-  const { operation, request } = input;
+  const { operation } = input;
     if(operation.target.path !== this.mintUrl){
-      throw new Error();
+      throw new Error("This request can not be handled !");
     }
-
-
-
-
-    // Check if body of request satisfies JSON Schema of MintRequest
-    // if(operation.body.data.readable){
-    //   const requestData = operation.body.data.read();
-    //   // Will throw an error if request dissatisfies JSON Schema
-    //   const { requestor} = MintRequestParser.parseMintRequest(requestData);
-    //   this.logger.info(requestor);
-    //    // Authentication - Check if verified web_id is equal to requestor web_id
-      
-    //   // Authorization - Check if this web_id is authorized for accessing resource in WAC standards
-    // }
-   
-
 }
 
-
+/**
+ * Handles the minting of a macaroon based on the incoming request.
+ * 
+ * @param input - The input containing the operation and request details.
+ * @returns A promise resolving to a ResponseDescription.
+ * @throws Throws an error for invalid mint requests or if any part of the mint request processing fails.
+ */
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
   const { request, operation } = input;
 
   if(operation.body.data.readable){
     const requestData = operation.body.data.read();
     try {
-      const startTime = process.hrtime();
-      // 1.  Parse body of request and check if it is structurally correct
+      // Parse body of request and check if it is structurally correct
       const mintRequest = MintRequestParser.parseMintRequest(requestData);
 
-      // 2. Authenticate requestor via DPOP
+      // Authenticate requestor via DPOP
       const credentials: CredentialSet = await this.credentialsExtractor.handleSafe(request);
       this.logger.info(`Extracted credentials: ${JSON.stringify(credentials)}`);
       const {requestor, mode} = mintRequest;
       if(credentials.agent?.webId !== undefined && requestor.toString() !== credentials.agent!.webId){
         throw new Error("Invalid credentials !");
       }
-      // 3. Check if requestor is authorized via WAC to access the requested resource to mint a token for
+      // Check if requestor is authorized via WAC to access the requested resource to mint a token for
       const {resourceURI} = mintRequest;
       const requestedModes = new IdentifierSetMultiMap<AccessMode>()
         .add({path: resourceURI.toString()},AccessMode[mode as keyof typeof AccessMode]);
@@ -103,17 +114,11 @@ public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescripti
         throw error;
       }
 
-      // 4. Mint a token (macaroon) that gives delegation rights to the minter for the requested resource
+      // Mint a root macaroon that gives delegation rights to the minter for the requested resource and mode
       const mintedMacaroon = await new MacaroonMinter().mintMacaroon(mintRequest);
       const responseData = guardedStreamFrom(JSON.stringify({mintedMacaroon: mintedMacaroon}));
       const response = new OkResponseDescription(new RepresentationMetadata(),responseData)
       this.logger.info("Minted macaroon for : " + requestor);
-      const endTime = process.hrtime(startTime);
-      const elapsedTimeMicroseconds = endTime[0] * 1e6 + endTime[1] / 1e3;
-      this.logger.info(`It took ${elapsedTimeMicroseconds} microseconds for the minting operation`)
-
-   
-
       return response;
 
     } catch (error) {

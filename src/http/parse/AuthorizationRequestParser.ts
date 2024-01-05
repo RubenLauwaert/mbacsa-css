@@ -10,8 +10,20 @@ const authorizationRequestBodySchema = {
   required: ["serializedDischargeMacaroons"]
 };
 
+
+
+/**
+ * Parses and validates authorization requests for MBACSA (Macaroon-Based Access Control System Authorization).
+ */
 export class AuthorizationRequestParser {
 
+
+  /**
+   * Parses and validates the body of an MBACSA authorization request.
+   * @param body - The body of the HTTP request to be parsed.
+   * @returns The parsed MbacsaAuthorizationRequest object if valid, otherwise undefined.
+   * @throws Error if the body is not readable or does not conform to the expected schema.
+   */
   public static parseMbacsaAuthorizationRequest(body: Representation):MbacsaAuthorizationRequest|undefined {
     if(body.data.readable){
       const bodyString = body.data.read();

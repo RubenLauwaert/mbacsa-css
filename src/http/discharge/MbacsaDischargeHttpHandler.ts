@@ -20,7 +20,9 @@ export interface MacaroonDischargeHttpHandlerArgs {
 }
 
 
-
+/**
+ * MacaroonDischargeHttpHandler handles HTTP requests related to the discharge of macaroons.
+ */
 export class MacaroonDischargeHttpHandler extends OperationHttpHandler {
 private readonly logger = getLoggerFor(this);
 private readonly credentialsExtractor:CredentialsExtractor;
@@ -28,6 +30,12 @@ private readonly baseUrl:string;
 private readonly endpoint:string;
 private readonly baseDischargeUrl:string;
 
+
+/**
+   * Constructs a new instance of MacaroonDischargeHttpHandler.
+   * 
+   * @param args - Arguments including credentials extractor, base URL, and endpoint.
+  */
 public constructor(args: MacaroonDischargeHttpHandlerArgs) {
 super();
 this.credentialsExtractor = args.credentialsExtractor;
@@ -36,6 +44,12 @@ this.endpoint = args.endpoint;
 this.baseDischargeUrl = this.baseUrl + this.endpoint;
 }
 
+/**
+   * Determines if the request should be handled by MacaroonDischargeHttpHandler.
+   * 
+   * @param input - The input containing the operation and target details.
+   * @throws Throws an error if the request does not target a valid discharge endpoint.
+  */
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   const {target, body} = input.operation;  
 
@@ -58,38 +72,43 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   } 
 }
 
-
+/**
+   * Handles requests for public discharge key retrieval and obtaining a discharge proof.
+   * 
+   * @param input - The input containing the operation and request details.
+   * @returns A promise resolving to a ResponseDescription.
+   * @throws Throws an error if the request body is not readable or if authentication fails.
+   */
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
   const {target, body,} = input.operation;
+  // Handle public discharge key retrieval request
   if(target.path.endsWith('/key')){
     if(DischargeRequestParser.isRequestBodyReadable(body)){
-      const startTime = process.hrtime();      // 1. Parse body of request
+      // Parse body of request
       const requestBody = body.data.read();
       const {subjectToRetrieveKeyFrom} = DischargeRequestParser.parsePublicKeyRequest(requestBody);
-      // 2. Retrieve public discharge key from pod of subject to retrieve from
+      // Retrieve public discharge key from pod of subject to retrieve from
       const pathToRootOfSubject = extractPathToPod(subjectToRetrieveKeyFrom);
       const pemPublicDischargeKey = new MacaroonKeyManager(pathToRootOfSubject).getPublicDischargeKey();
       const jwkPublicDischargeKey = pem2jwk(pemPublicDischargeKey);
-      // 3. Construct response
+      // Construct discharge key response
       const publicDischargeKeyResponse:PublicDischargeKeyResponse = {dischargeKey:jwkPublicDischargeKey}
       const responseData = guardedStreamFrom(JSON.stringify(publicDischargeKeyResponse));
-      const endTime = process.hrtime(startTime);
-      const elapsedTimeMicroseconds = endTime[0] * 1e6 + endTime[1] / 1e3;
-      this.logger.info(`It took ${elapsedTimeMicroseconds} microseconds to retrieve discharge key !`)
       this.logger.info("Successfully shared public discharge key of : " + subjectToRetrieveKeyFrom);
       return new OkResponseDescription(new RepresentationMetadata(),responseData);
     }else{
       throw new Error("Request body is not readable !");
     }
+  // Handle request to obtain a discharge request
   }else{
-    // 1. Parse body of request
+    // Parse body of request
     const dischargeRequest = DischargeRequestParser.parseDischargeRequest(body);
-    // 2. Authenticate agent to discharge via DPoP 
+    // Authenticate agent to discharge via Solid-OIDC / DPoP
     const credentials = await this.credentialsExtractor.handleSafe(input.request)
     const authenticatedAgent = credentials.agent?.webId
     const { thirdPartyCaveatIdentifier, agentToDischarge } = dischargeRequest;
     if(authenticatedAgent !== agentToDischarge){throw new Error("The authenticated agent is not equal to the agent that requests a discharge !")}
-    // 3. Generate Discharge Macaroon
+    // Generate discharge macaroon / discharge response
     const serializedDischargeMacaroon = MacaroonDischarger.generateDischargeMacaroon(thirdPartyCaveatIdentifier,agentToDischarge,this.baseDischargeUrl);
     const responseData = guardedStreamFrom(JSON.stringify({dischargeMacaroon: serializedDischargeMacaroon}));
     const response = new OkResponseDescription(new RepresentationMetadata(),responseData)

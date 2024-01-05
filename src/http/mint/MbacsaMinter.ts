@@ -8,14 +8,26 @@ import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
 import { extractPathToPod, extractWebID } from "../../util/Util";
 
 
+/**
+ * The MacaroonMinter class is responsible for minting MBACSA specific macaroons.
+ */
 export class MacaroonMinter {
 
   private readonly logger = getLoggerFor(this);
 
-  public constructor(){
 
-  }
-
+  /**
+   * Mints a new macaroon based on the provided mint request.
+   * The method constructs a macaroon that includes both first-party and third-party caveats.
+   * 
+   * @param mintRequest - The request containing the following details for minting the macaroon:
+   *   - resourceURI: The URI of the resource for which the macaroon is being minted.
+   *   - requestor: The WebID of the entity requesting the macaroon.
+   *   - requestedAccessMode: The access mode requested by the entity (e.g., read, write).
+   *   - dischargeKey: The RSA JSON Web Key (JWK) of the requestor, used to encrypt third-party caveats.
+   *   - mode: An additional mode parameter, possibly duplicating or supplementing 'requestedAccessMode'.
+   * @returns A promise that resolves to the serialized macaroon.
+   */
   public async mintMacaroon(mintRequest : MintRequest):Promise<string>{
     const {resourceURI, requestor, mode, dischargeKey} = mintRequest;
     const location = resourceURI;

@@ -3,6 +3,12 @@ import { Macaroon, MacaroonsVerifier, TimestampCaveatVerifier } from "macaroons.
 import { MacaroonKeyManager } from "../../mbacsa/MbacsaKeyManager";
 import { extractPathToPod, extractWebID } from "../../util/Util";
 
+
+/**
+ * MacaroonsAuthorizer is responsible for authorizing access to resources
+ * based on macaroons. It verifies the validity of both root and discharge macaroons
+ * against a set of predefined conditions.
+ */
 export class MacaroonsAuthorizer {
 
   private readonly logger = getLoggerFor(this);
@@ -11,6 +17,14 @@ export class MacaroonsAuthorizer {
   private readonly rootMacaroon:Macaroon;
   private readonly dischargeMacaroons:Macaroon[];
 
+
+  /**
+   * Constructs a new instance of MacaroonsAuthorizer.
+   * 
+   * @param target - The resource identifier for which authorization is being checked.
+   * @param macaroons - An array of macaroons, where the first one is expected to be the root macaroon,
+   *                    followed by any discharge macaroons.
+   */
   public constructor(target:ResourceIdentifier, macaroons: Macaroon[]){
     this.target = target;
     this.issuer = extractWebID(target.path);
@@ -20,37 +34,17 @@ export class MacaroonsAuthorizer {
     this.dischargeMacaroons = dischargeMacaroons;
 
   }
-
-  // Verify if macaroon is valid within time-interval
-  public TimeStampVerifier(caveat:string):boolean {
-    if(!caveat.includes("time < ")){return false;}
-    const expiryTime = parseInt(caveat.replace("time < ",""));
-    if(expiryTime  > Date.now()){
-      this.logger.info("Verified timestamp !");
-      return true;}
-    return false;
-  }
-
-  // Verify issuer of macaroon 
-  public IssuerVerifier(caveat:string):boolean {
-    if(!caveat.includes(`issuer = ${this.issuer}`)){return false;}
-    return true;
-  }
-
-  // Verify access mode of macaroon
-  public AccessModeVerifier(caveat:string):boolean {
-    if(!caveat.includes(`mode = `)){return false;}
-    const mode = caveat.replace("mode = ","");
-    if(!Object.values(AccessMode).includes(mode as AccessMode)){return false;}
-    return true;
-  }
-
-
+  /**
+  * Validates the macaroons against the target resource, issuer, expiry time, access mode,
+  * and discharge conditions.
+  * 
+  * @returns true if the macaroons are valid for the target resource, false otherwise.
+  */
   public isValid():boolean{
     // Check if target matches location of root macaroon
     if(this.target.path !== this.rootMacaroon.location){return false};
     
-    
+    // Create new instance of MacaroonsVerifier
     const macaroonVerifier = new MacaroonsVerifier(this.rootMacaroon);
     
     // Verify issuer
@@ -95,20 +89,10 @@ export class MacaroonsAuthorizer {
 
     })
     
-
     // Perform validation of macaroon
     const rootOfIssuer =  extractPathToPod(this.target.path);
     const rootSecretKey = new MacaroonKeyManager(rootOfIssuer).getSecretRootKey();
-    try {
-      const assertIsValid = macaroonVerifier.assertIsValid(rootSecretKey);
-    } catch (error) {
-      this.logger.info(error as string)
-    }
     const isValid = macaroonVerifier.isValid(rootSecretKey);
     return isValid; 
   }
-
-
-
-
 }

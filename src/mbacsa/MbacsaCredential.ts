@@ -1,10 +1,15 @@
 import { CaveatPacket, Macaroon } from "macaroons.js";
 import { WebID, extractWebID } from "../util/Util";
-import { DelegationToken } from "./DelegationToken";
+import { DischargeToken } from "./DischargeToken";
 import { RevocationStatement } from "../types/RevocationStatement";
 import { AccessMode } from "@solid/community-server";
 import { MacaroonsAuthorizer } from "../http/authorization/MacaroonsAuthorizer";
 
+
+/**
+ * Represents credentials for MBACSA (Macaroon-Based Authorization Configuration for Solid Applications),
+ * encapsulating the necessary details for authorization and revocation checks.
+ */
 export class MbacsaCredential {
 
   private readonly target:string
@@ -12,16 +17,22 @@ export class MbacsaCredential {
   private readonly rootMacaroon:Macaroon;
   private readonly dischargeMacaroons:Macaroon[];
   private readonly attenuatedAccessMode:AccessMode;
-  private readonly delegationTokens:DelegationToken[];
+  private readonly delegationTokens:DischargeToken[];
   private readonly revocationStatements:RevocationStatement[]
 
+
+  /**
+   * Constructs a MbacsaCredential.
+   * @param macaroons Array of Macaroons including the root and discharge macaroons.
+   * @param revocationStatements Array of RevocationStatements for revocation check.
+   */
   public constructor(macaroons:Macaroon[], revocationStatements:RevocationStatement[]){
     const [rootMacaroon,...dischargeMacaroons] = macaroons;
     this.rootMacaroon = rootMacaroon;
     this.dischargeMacaroons = dischargeMacaroons;
     this.target = this.rootMacaroon.location;   
     this.delegationTokens = dischargeMacaroons.map((dischargeMacaroon) => {
-      return new DelegationToken(dischargeMacaroon);
+      return new DischargeToken(dischargeMacaroon);
     })
     this.revocationStatements = revocationStatements;
     // Extract most restrictive access mode out of root macaroon and delegation tokens
@@ -38,6 +49,7 @@ export class MbacsaCredential {
   public getAttenuatedAccessMode():AccessMode{return this.attenuatedAccessMode}
   public getHTTPMethod():string{return this.mapAccessModeToHttpMethod(this.attenuatedAccessMode)}
   public getAgentLastInChain():WebID{return this.delegationTokens[this.delegationTokens.length - 1].getDelegatee();}
+
   public getAgentPositionInChain(agent: WebID):number|undefined{
     let position;
     for(let chainIndex = 0 ; chainIndex < this.delegationTokens.length ; chainIndex ++){
@@ -50,6 +62,8 @@ export class MbacsaCredential {
   }
 
   // Checkers
+
+  // Check if the credential is revoked
   private isCredentialRevoked():boolean{
 
     for(let chainIndex = 0 ; chainIndex < this.delegationTokens.length ; chainIndex++){
@@ -68,7 +82,7 @@ export class MbacsaCredential {
     return false;
   }
 
-
+  // Check if the credential is authorized
   public isCredentialAuthorized():boolean {
     const isValid = new MacaroonsAuthorizer({path: this.target},[this.rootMacaroon,...this.dischargeMacaroons]).isValid();
 
@@ -78,6 +92,7 @@ export class MbacsaCredential {
     
   }
 
+  // Check if the revoker is authorized to revoke
   public isRevokerAuthorized(revoker: WebID, revokee: WebID):boolean{
     // Check if revoker is last in delegation chain
     const agentLastInChain = this.getAgentLastInChain();
@@ -90,7 +105,8 @@ export class MbacsaCredential {
 
   // Helpers
 
-  private extractAttenuatedAccessMode(rootCaveats: CaveatPacket[], delegationTokens: DelegationToken[]):AccessMode{
+  // Helper for extracting the lowest access mode, encompassed in the root / discharge macaroons
+  private extractAttenuatedAccessMode(rootCaveats: CaveatPacket[], delegationTokens: DischargeToken[]):AccessMode{
     // Get access mode contained in minted root macaroon
     const rootCaveatsText = rootCaveats.map((caveat) => {return caveat.getValueAsText()});
     if(rootCaveatsText.length < 2 || !rootCaveatsText[1].includes("mode = "))
@@ -105,6 +121,7 @@ export class MbacsaCredential {
     else{return rootMode;}
   }
 
+  // Maps an access mode string to an HTTP Method string
   private mapAccessModeToHttpMethod(accessMode: AccessMode): string {
     switch (accessMode) {
         case AccessMode.read:

@@ -8,10 +8,11 @@ import { RevocationStore } from '../../storage/RevocationStore';
 import { RevocationStatement } from '../../types/RevocationStatement';
 import { MbacsaCredential } from '../../mbacsa/MbacsaCredential';
 
+
+/**
+ * Interface for arguments required by MacaroonRevocationHttpHandler.
+ */
 export interface MacaroonRevocationHttpHandlerArgs {
-  /**
-   * Extracts the credentials from the incoming request.
-   */
   credentialsExtractor: CredentialsExtractor,
   baseUrl : string,
   endpoint : string,
@@ -19,27 +20,33 @@ export interface MacaroonRevocationHttpHandlerArgs {
 }
 
 
-
-
+/**
+ * Handles HTTP requests for revoking macaroons.
+ */
 export class MacaroonRevocationHttpHandler extends OperationHttpHandler {
 private readonly logger = getLoggerFor(this);
 
-private readonly credentialsExtractor: CredentialsExtractor;
 private readonly baseUrl:string;
 private readonly endpoint:string;
 private readonly revokeUrl:string;
-private readonly revocationStore:JsonFileStorage;
 
+
+ /**
+   * Constructor for MacaroonRevocationHttpHandler.
+   * @param args - Arguments for the handler, including credentials extractor, base URL, endpoint, and revocation store.
+  */
 public constructor(args: MacaroonRevocationHttpHandlerArgs) {
   super();
-  this.credentialsExtractor = args.credentialsExtractor;
   this.baseUrl = ensureTrailingSlash(args.baseUrl);
   this.endpoint = args.endpoint;
   this.revokeUrl = this.baseUrl + this.endpoint;
-  this.revocationStore = args.revocationStore;
 }
 
-
+/**
+ * Determines if the handler can process the given input.
+ * @param input - The input containing the operation details.
+ * @throws An error if the request URL does not match the handler's revoke URL.
+*/
 public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
   const {target, body} = input.operation;  
 
@@ -50,28 +57,35 @@ public async canHandle(input: OperationHttpHandlerInput): Promise<void> {
 
 }
 
+
+/**
+   * Processes the revocation request.
+   * @param input - The input containing the operation and request details.
+   * @returns A response indicating the success or failure of the revocation process.
+   * @throws UnauthorizedHttpError if the provided macaroon is not authorized or the revoker is not authorized to revoke.
+  */
 public async handle(input: OperationHttpHandlerInput): Promise<ResponseDescription> {
   const { request, operation } = input;
   const { headers } = request;
   const { target } = operation;
 
-  // 1. Parse revocation request
+  // Parse revocation request
   const {serializedMacaroons, revoker, revokee} = RevocationRequestParser.parseRevocationRequest(operation.body);
-  // 2. Extract macaroon + discharge macaroons to revoke 
+  // Extract macaroon + discharge macaroons to revoke 
   const macaroons = MacaroonsExtractor.extractMacaroons(serializedMacaroons.toString());
-  // 3. Convert macaroons to MbacsaCredential
+  // Convert macaroons to MbacsaCredential
   const rootMacaroon = macaroons[0];
   const issuer = extractWebID(rootMacaroon.location);
   const rootMacaroonIdentifier = rootMacaroon.identifier;
   const revocationStatements = await new RevocationStore(issuer).get(rootMacaroonIdentifier);
   const mbacsaCredential = new MbacsaCredential(macaroons,revocationStatements);
-  // 4. Check if credential is authorized
+  // Check if credential is authorized
   const isCredentialAuthorized = mbacsaCredential.isCredentialAuthorized();
   if(!isCredentialAuthorized){throw new UnauthorizedHttpError("Provided macaroon to revoke is itself not authorized!")}
-  // 5. Check if revoker is authorized to revoke 
+  // Check if revoker is authorized to revoke 
   const isRevokerAuthorized = mbacsaCredential.isRevokerAuthorized(revoker,revokee);
   if(!isRevokerAuthorized){throw new Error("Revoker is not authorized to revoke revokee!")}
-  // 6. Updating revocation store 
+  // Updating revocation store 
   try {
     const storeOwner = mbacsaCredential.getIssuer();
     const store = new RevocationStore(storeOwner);
